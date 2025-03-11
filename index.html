@@ -68,11 +68,13 @@
         <input type="number" id="maand" placeholder="Maand (1-12)">
         <input type="number" id="jaar" placeholder="Jaar (bijv. 1980)">
         <button onclick="bereken()">Bereken</button>
+        <button onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
         <div id="resultaat">Resultaat zal hier verschijnen</div>
     </div>
     <div class="footer">
-        © 2025 Javaanse Datum Calculator
+        © 2025 Javaanse Datum Calculator. Kedjawen Javaweg
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Referentiedatum: 5 augustus 2023 is de eerste dag van Javaans jaar 6449
         const referentieDatum = new Date(2023, 7, 5); // Maanden zijn 0-based in JavaScript
@@ -101,6 +103,14 @@
             11: "Podho", 12: "Dhoho", 13: "Djopo", 14: "Joho", 15: "Njoto",
             16: "Monggo", 17: "Ghopoh", 18: "Bohoso", 19: "Thotoko", 20: "Ngotoko"
         };
+
+        function exporteerNaarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const resultaat = document.getElementById('resultaat').textContent;
+            doc.text(resultaat, 10, 10);
+            doc.save('javaanse_datum.pdf');
+        }
 
         function bereken() {
             const dag = parseInt(document.getElementById('dag').value);
@@ -133,9 +143,9 @@ Dag van de Week: ${dagVanDeWeek}
 Waarde van de Dag: ${dagWaarde}
 Waarde van de Pasaran: ${pasaranWaarde}
 Totale Waarde: ${totaleWaarde}
-Ligging: ${ligging}
+Ligging: ${ligging}\n
 Kerkdiensttijden (overdag): ${overdagTijden.join(', ')}
-Kerkdiensttijden (avond): ${avondTijden.join(', ')}
+Kerkdiensttijden (avond): ${avondTijden.join(', ')}\n
 ${paweton}`;
             document.getElementById('resultaat').textContent = resultaat;
         }
@@ -236,7 +246,7 @@ ${paweton}`;
             const derdeTekst = krijgTekst(derdeWaarde);
             const vierdeTekst = krijgTekst(vierdeWaarde);
 
-            return `Paweton
+            return `Paweton:
 ${eersteWaarde} - ${eersteTekst}
 ${tweedeWaarde} - ${tweedeTekst}
 ${derdeWaarde} - ${derdeTekst}
