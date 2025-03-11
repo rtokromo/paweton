@@ -25,19 +25,16 @@
             border-radius: 10px;
             padding: 20px;
             max-width: 400px;
-            min-width: 300px;
             margin: 0 auto;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         input, button {
             width: 90%;
-            height: 50px;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #8b5a2b;
             border-radius: 5px;
-            font-size: 18px;
-            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16px;
         }
         button {
             background-color: #8b5a2b;
@@ -62,24 +59,6 @@
             font-size: 0.9rem;
             color: #8b5a2b;
         }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 15px;
-            }
-            input, button {
-                font-size: 16px;
-                height: 45px;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            #resultaat {
-                font-size: 16px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -89,11 +68,13 @@
         <input type="number" id="maand" placeholder="Maand (1-12)">
         <input type="number" id="jaar" placeholder="Jaar (bijv. 1980)">
         <button onclick="bereken()">Bereken</button>
+        <button onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
         <div id="resultaat">Resultaat zal hier verschijnen</div>
     </div>
     <div class="footer">
-        © 2025 Javaanse Datum Calculator Kedjawen Javaweg
+        © 2023 Javaanse Datum Calculator
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Referentiedatum: 5 augustus 2023 is de eerste dag van Javaans jaar 6449
         const referentieDatum = new Date(2023, 7, 5); // Maanden zijn 0-based in JavaScript
@@ -117,27 +98,19 @@
             "Wage": 4
         };
         const pawetonTeksten = {
-            1: "Hono",
-            2: "Noto",
-            3: "Tjoro",
-            4: "Rosoko",
-            5: "Koyo",
-            6: "Doko",
-            7: "Toko",
-            8: "Soworo",
-            9: "Wotjo",
-            10: "Lomono",
-            11: "Podho",
-            12: "Dhoho",
-            13: "Djopo",
-            14: "Joho",
-            15: "Njoto",
-            16: "Monggo",
-            17: "Ghopoh",
-            18: "Bohoso",
-            19: "Thotoko",
-            20: "Ngotoko"
+            1: "Hono", 2: "Noto", 3: "Tjoro", 4: "Rosoko", 5: "Koyo",
+            6: "Doko", 7: "Toko", 8: "Soworo", 9: "Wotjo", 10: "Lomono",
+            11: "Podho", 12: "Dhoho", 13: "Djopo", 14: "Joho", 15: "Njoto",
+            16: "Monggo", 17: "Ghopoh", 18: "Bohoso", 19: "Thotoko", 20: "Ngotoko"
         };
+
+        function exporteerNaarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const resultaat = document.getElementById('resultaat').textContent;
+            doc.text(resultaat, 10, 10);
+            doc.save('javaanse_datum.pdf');
+        }
 
         function bereken() {
             const dag = parseInt(document.getElementById('dag').value);
@@ -279,6 +252,23 @@ ${tweedeWaarde} - ${tweedeTekst}
 ${derdeWaarde} - ${derdeTekst}
 ${vierdeWaarde} - ${vierdeTekst}`;
         }
+
+        // Voeg event listeners toe voor Enter-toets
+        document.getElementById('dag').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                bereken();
+            }
+        });
+        document.getElementById('maand').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                bereken();
+            }
+        });
+        document.getElementById('jaar').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                bereken();
+            }
+        });
     </script>
 </body>
 </html>
