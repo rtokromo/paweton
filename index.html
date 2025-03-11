@@ -265,35 +265,27 @@ ${paweton}`;
             return `${String(uur).padStart(2, '0')}:${String(minuten).padStart(2, '0')}`;
         }
 
-        // Functie om de Paweton-waarden te berekenen
+// Functie om de Paweton-waarden te berekenen
 function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
-    // Functie om negatieve waarden om te zetten naar positief
-    const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
-
-    // Functie om waarden groter dan 20 te verminderen met 20, en 0 omzetten naar 20
-    const verminderMet20 = (waarde) => {
-        waarde = waarde % 20; // Verminder met veelvouden van 20
-        return waarde === 0 ? 1 : waarde; // Zet 0 om naar 1
+    // Helper-functie om een waarde te berekenen
+    const berekenWaarde = (basis, aftrek) => {
+        if (aftrek === 0) return 1; // Speciale regel: Als aftrek 0 is, resultaat is altijd 1
+        let waarde = Math.abs(basis - aftrek); // Positieve waarde berekenen
+        return waarde > 20 ? waarde - 20 : waarde; // Verminder met 20 indien nodig
     };
 
     // Bereken de vier waarden
-    let eersteWaarde = verminderMet20(maakPositief(dagVanDeMaand - dagWaarde));
-    let tweedeWaarde = verminderMet20(maakPositief(dagVanDeMaand - pasaranWaarde));
-    let derdeWaarde = verminderMet20(maakPositief(dagVanDeMaand));
-    let vierdeWaarde = verminderMet20(maakPositief(totaleWaarde));
+    const eersteWaarde = berekenWaarde(dagVanDeMaand, dagWaarde);
+    const tweedeWaarde = berekenWaarde(dagVanDeMaand, pasaranWaarde);
+    const derdeWaarde = berekenWaarde(dagVanDeMaand, 0); // Speciale regel: wordt altijd 1
+    const vierdeWaarde = berekenWaarde(totaleWaarde, 0); // Speciale regel: wordt altijd 1
 
     // Voeg de bijbehorende tekst toe aan elke waarde
-    const eersteTekst = pawetonTeksten[eersteWaarde] || "Onbekend";
-    const tweedeTekst = pawetonTeksten[tweedeWaarde] || "Onbekend";
-    const derdeTekst = pawetonTeksten[derdeWaarde] || "Onbekend";
-    const vierdeTekst = pawetonTeksten[vierdeWaarde] || "Onbekend";
-
-    // Retourneer het resultaat als een geformatteerde string
     return `Paweton
-${eersteWaarde} - ${eersteTekst}
-${tweedeWaarde} - ${tweedeTekst}
-${derdeWaarde} - ${derdeTekst}
-${vierdeWaarde} - ${vierdeTekst}`;
+${eersteWaarde} - ${config.pawetonTeksten[eersteWaarde] || "Onbekend"}
+${tweedeWaarde} - ${config.pawetonTeksten[tweedeWaarde] || "Onbekend"}
+${derdeWaarde} - ${config.pawetonTeksten[derdeWaarde] || "Onbekend"}
+${vierdeWaarde} - ${config.pawetonTeksten[vierdeWaarde] || "Onbekend"}`;
 }
 
         // Functie om resultaten op te slaan in geschiedenis
