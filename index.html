@@ -59,51 +59,32 @@
             font-size: 0.9rem;
             color: #8b5a2b;
         }
-        .hidden {
-            display: none;
-        }
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2rem;
-            }
-            .container {
-                padding: 15px;
-                max-width: 90%;
-            }
-            input, button {
-                font-size: 14px;
-            }
-            #resultaat {
-                font-size: 16px;
-            }
+        #geschiedenis {
+            margin-top: 20px;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #8b5a2b;
+            max-height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
     <h1>Javaanse Datum Calculator</h1>
     <div class="container">
-        <label>
-            <input type="radio" name="datumInvoer" value="handmatig" checked onclick="toggleDatumInvoer()"> Handmatig invoeren
-        </label>
-        <label>
-            <input type="radio" name="datumInvoer" value="kalender" onclick="toggleDatumInvoer()"> Kalenderwidget
-        </label>
-        <div id="handmatigInvoer">
-            <input type="number" id="dag" placeholder="Dag (1-31)">
-            <input type="number" id="maand" placeholder="Maand (1-12)">
-            <input type="number" id="jaar" placeholder="Jaar (bijv. 1980)">
-        </div>
-        <div id="kalenderInvoer" class="hidden">
-            <input type="date" id="datumWidget">
-        </div>
+        <input type="number" id="dag" placeholder="Dag (1-31)">
+        <input type="number" id="maand" placeholder="Maand (1-12)">
+        <input type="number" id="jaar" placeholder="Jaar (bijv. 1980)">
         <button onclick="bereken()">Bereken</button>
-        <button onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
+        <button onclick="toonGeschiedenis()">Toon Geschiedenis</button>
         <div id="resultaat">Resultaat zal hier verschijnen</div>
+        <div id="geschiedenis" style="display: none;">Geschiedenis zal hier verschijnen</div>
     </div>
     <div class="footer">
         © 2023 Javaanse Datum Calculator
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Referentiedatum: 5 augustus 2023 is de eerste dag van Javaans jaar 6449
         const referentieDatum = new Date(2023, 7, 5); // Maanden zijn 0-based in JavaScript
@@ -135,64 +116,28 @@
 
         let geschiedenis = JSON.parse(localStorage.getItem('geschiedenis')) || [];
 
-        function toggleDatumInvoer() {
-            const handmatigInvoer = document.getElementById('handmatigInvoer');
-            const kalenderInvoer = document.getElementById('kalenderInvoer');
-            if (document.querySelector('input[name="datumInvoer"]:checked').value === 'kalender') {
-                handmatigInvoer.classList.add('hidden');
-                kalenderInvoer.classList.remove('hidden');
-            } else {
-                handmatigInvoer.classList.remove('hidden');
-                kalenderInvoer.classList.add('hidden');
-            }
-        }
-
-        async function haalLocatieEnIP() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                return `${data.city}, ${data.country_name} (IP: ${data.ip})`;
-            } catch (error) {
-                console.error("Fout bij ophalen locatie/IP:", error);
-                return "Onbekend";
-            }
-        }
-
         function slaResultaatOp(resultaat) {
-            haalLocatieEnIP().then(locatie => {
-                geschiedenis.push({ resultaat, locatie, datum: new Date().toLocaleString() });
-                if (geschiedenis.length > 10) geschiedenis.shift();
-                localStorage.setItem('geschiedenis', JSON.stringify(geschiedenis));
-            });
+            geschiedenis.push({ resultaat, datum: new Date().toLocaleString() });
+            if (geschiedenis.length > 10) geschiedenis.shift(); // Beperk tot 10 items
+            localStorage.setItem('geschiedenis', JSON.stringify(geschiedenis));
         }
 
-        function exporteerNaarPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const resultaat = document.getElementById('resultaat').textContent;
-            doc.text(resultaat, 10, 10);
-            doc.save('javaanse_datum.pdf');
+        function toonGeschiedenis() {
+            const geschiedenisDiv = document.getElementById('geschiedenis');
+            if (geschiedenisDiv.style.display === 'none') {
+                geschiedenisDiv.style.display = 'block';
+                geschiedenisDiv.innerHTML = `<h3>Geschiedenis</h3><pre>${geschiedenis.map(item => `${item.datum}\n${item.resultaat}`).join('\n\n')}</pre>`;
+            } else {
+                geschiedenisDiv.style.display = 'none';
+            }
         }
 
         function bereken() {
-            let dag, maand, jaar;
-            if (document.querySelector('input[name="datumInvoer"]:checked').value === 'kalender') {
-                const datumWidget = document.getElementById('datumWidget').value;
-                if (!datumWidget) {
-                    alert("Selecteer een datum in de kalender.");
-                    return;
-                }
-                const datum = new Date(datumWidget);
-                dag = datum.getDate();
-                maand = datum.getMonth();
-                jaar = datum.getFullYear();
-            } else {
-                dag = parseInt(document.getElementById('dag').value);
-                maand = parseInt(document.getElementById('maand').value) - 1;
-                jaar = parseInt(document.getElementById('jaar').value);
-            }
-
+            const dag = parseInt(document.getElementById('dag').value);
+            const maand = parseInt(document.getElementById('maand').value) - 1; // Maanden zijn 0-based
+            const jaar = parseInt(document.getElementById('jaar').value);
             const datum = new Date(jaar, maand, dag);
+
             if (isNaN(datum.getTime())) {
                 document.getElementById('resultaat').textContent = "Ongeldige datum. Probeer opnieuw.";
                 return;
