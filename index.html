@@ -266,23 +266,35 @@ ${paweton}`;
         }
 
         // Functie om de Paweton-waarden te berekenen
-        function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
-            const berekenWaarde = (basis, aftrek) => {
-                let waarde = Math.abs(basis - aftrek);
-                return waarde > 20 ? waarde - 20 : waarde;
-            };
+function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
+    // Functie om negatieve waarden om te zetten naar positief
+    const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
 
-            const eersteWaarde = berekenWaarde(dagVanDeMaand, dagWaarde);
-            const tweedeWaarde = berekenWaarde(dagVanDeMaand, pasaranWaarde);
-            const derdeWaarde = berekenWaarde(dagVanDeMaand, 0);
-            const vierdeWaarde = berekenWaarde(totaleWaarde, 0);
+    // Functie om waarden groter dan 20 te verminderen met 20, en 0 omzetten naar 20
+    const verminderMet20 = (waarde) => {
+        waarde = waarde % 20; // Verminder met veelvouden van 20
+        return waarde === 0 ? 1 : waarde; // Zet 0 om naar 1
+    };
 
-            return `Paweton
-${eersteWaarde} - ${config.pawetonTeksten[eersteWaarde] || "Onbekend"}
-${tweedeWaarde} - ${config.pawetonTeksten[tweedeWaarde] || "Onbekend"}
-${derdeWaarde} - ${config.pawetonTeksten[derdeWaarde] || "Onbekend"}
-${vierdeWaarde} - ${config.pawetonTeksten[vierdeWaarde] || "Onbekend"}`;
-        }
+    // Bereken de vier waarden
+    let eersteWaarde = verminderMet20(maakPositief(dagVanDeMaand - dagWaarde));
+    let tweedeWaarde = verminderMet20(maakPositief(dagVanDeMaand - pasaranWaarde));
+    let derdeWaarde = verminderMet20(maakPositief(dagVanDeMaand));
+    let vierdeWaarde = verminderMet20(maakPositief(totaleWaarde));
+
+    // Voeg de bijbehorende tekst toe aan elke waarde
+    const eersteTekst = pawetonTeksten[eersteWaarde] || "Onbekend";
+    const tweedeTekst = pawetonTeksten[tweedeWaarde] || "Onbekend";
+    const derdeTekst = pawetonTeksten[derdeWaarde] || "Onbekend";
+    const vierdeTekst = pawetonTeksten[vierdeWaarde] || "Onbekend";
+
+    // Retourneer het resultaat als een geformatteerde string
+    return `Paweton
+${eersteWaarde} - ${eersteTekst}
+${tweedeWaarde} - ${tweedeTekst}
+${derdeWaarde} - ${derdeTekst}
+${vierdeWaarde} - ${vierdeTekst}`;
+}
 
         // Functie om resultaten op te slaan in geschiedenis
         function slaResultaatOp(resultaat) {
