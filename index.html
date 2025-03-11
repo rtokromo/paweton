@@ -194,31 +194,43 @@
         }
         // Functie om de Paweton-waarden te berekenen
         function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
-            // Bereken de vier waarden (eerste en tweede zijn omgewisseld)
-            let eersteWaarde = dagVanDeMaand - dagWaarde; // Nu: Dag van de Javaanse Maand - Waarde van de Dag
-            let tweedeWaarde = dagVanDeMaand - pasaranWaarde; // Nu: Dag van de Javaanse Maand - Waarde van de Pasaran
-            let derdeWaarde = dagVanDeMaand;
-            let vierdeWaarde = totaleWaarde;
-            // Functie om negatieve waarden om te zetten naar positief
-            const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
-            // Functie om waarden groter dan 20 te verminderen met 20
-            const verminderMet20 = (waarde) => (waarde > 20 ? waarde - 20 : waarde);
-            // Pas de regels toe op elke waarde
-            eersteWaarde = verminderMet20(maakPositief(eersteWaarde));
-            tweedeWaarde = verminderMet20(maakPositief(tweedeWaarde));
-            derdeWaarde = verminderMet20(maakPositief(derdeWaarde));
-            vierdeWaarde = verminderMet20(maakPositief(vierdeWaarde));
-            // Voeg de bijbehorende tekst toe aan elke waarde
-            const eersteTekst = pawetonTeksten[eersteWaarde] || "Onbekend";
-            const tweedeTekst = pawetonTeksten[tweedeWaarde] || "Onbekend";
-            const derdeTekst = pawetonTeksten[derdeWaarde] || "Onbekend";
-            const vierdeTekst = pawetonTeksten[vierdeWaarde] || "Onbekend";
-            return `Paweton
+    // Functie om negatieve waarden om te zetten naar positief
+    const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
+
+    // Functie om waarden groter dan 20 te verminderen met 20
+    const verminderMet20 = (waarde) => (waarde > 20 ? waarde - 20 : waarde);
+
+    // Functie om een waarde op te zoeken in pawetonTeksten of een standaardtekst te retourneren
+    const krijgTekst = (waarde) => pawetonTeksten[waarde] || "Standaard";
+
+    // Bereken de vier waarden
+    let eersteWaarde = dagVanDeMaand - dagWaarde; // Dag van de Javaanse Maand - Waarde van de Dag
+    let tweedeWaarde = dagVanDeMaand - pasaranWaarde; // Dag van de Javaanse Maand - Waarde van de Pasaran
+    let derdeWaarde = dagVanDeMaand;
+    let vierdeWaarde = totaleWaarde;
+
+    // Pas de regels toe op elke waarde
+    eersteWaarde = verminderMet20(maakPositief(eersteWaarde));
+    if (eersteWaarde === 0) eersteWaarde = 1; // Zorg ervoor dat 0 wordt omgezet naar 1
+
+    tweedeWaarde = verminderMet20(maakPositief(tweedeWaarde));
+    if (tweedeWaarde === 0) tweedeWaarde = 1; // Zorg ervoor dat 0 wordt omgezet naar 1
+
+    derdeWaarde = verminderMet20(maakPositief(derdeWaarde));
+    vierdeWaarde = verminderMet20(maakPositief(vierdeWaarde));
+
+    // Voeg de bijbehorende tekst toe aan elke waarde
+    const eersteTekst = krijgTekst(eersteWaarde);
+    const tweedeTekst = krijgTekst(tweedeWaarde);
+    const derdeTekst = krijgTekst(derdeWaarde);
+    const vierdeTekst = krijgTekst(vierdeWaarde);
+
+    return `Paweton
 ${eersteWaarde} - ${eersteTekst}
 ${tweedeWaarde} - ${tweedeTekst}
 ${derdeWaarde} - ${derdeTekst}
 ${vierdeWaarde} - ${vierdeTekst}`;
-        }
+}
         // Hoofdfunctie om de berekening uit te voeren
         function bereken() {
             const dag = parseInt(document.getElementById('dag').value);
