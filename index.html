@@ -222,36 +222,48 @@ ${paweton}`;
             return uren.map(uur => formatTijd12Uur(uur, minuten));
         }
 
-        function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
-            const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
-            const verminderMet20 = (waarde) => (waarde > 20 ? waarde - 20 : waarde);
-            const krijgTekst = (waarde) => pawetonTeksten[waarde] || "Standaard";
+       function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
+    // Bereken de vier waarden
+    let eersteWaarde = dagVanDeMaand - dagWaarde; // Eerste aftrek: Dag van de Javaanse Maand - Waarde van de Dag
+    let tweedeWaarde = dagVanDeMaand - pasaranWaarde; // Tweede aftrek: Dag van de Javaanse Maand - Waarde van de Pasaran
+    let derdeWaarde = dagVanDeMaand;
+    let vierdeWaarde = totaleWaarde;
 
-            let eersteWaarde = dagVanDeMaand - dagWaarde;
-            let tweedeWaarde = dagVanDeMaand - pasaranWaarde;
-            let derdeWaarde = dagVanDeMaand;
-            let vierdeWaarde = totaleWaarde;
+    // Functie om negatieve waarden om te zetten naar positief
+    const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
 
-            eersteWaarde = verminderMet20(maakPositief(eersteWaarde));
-            if (eersteWaarde === 0) eersteWaarde = 1;
+    // Functie om waarden groter dan 20 te verminderen met 20
+    const verminderMet20 = (waarde) => (waarde > 20 ? waarde - 20 : waarde);
 
-            tweedeWaarde = verminderMet20(maakPositief(tweedeWaarde));
-            if (tweedeWaarde === 0) tweedeWaarde = 1;
+    // Speciale regels voor de eerste en tweede waarden
+    if (dagVanDeMaand - dagWaarde === 0) {
+        eersteWaarde = dagWaarde; // Uitkomst wordt gelijkgesteld aan dagWaarde
+    } else {
+        eersteWaarde = verminderMet20(maakPositief(eersteWaarde));
+    }
 
-            derdeWaarde = verminderMet20(maakPositief(derdeWaarde));
-            vierdeWaarde = verminderMet20(maakPositief(vierdeWaarde));
+    if (dagVanDeMaand - pasaranWaarde === 0) {
+        tweedeWaarde = pasaranWaarde; // Uitkomst wordt gelijkgesteld aan pasaranWaarde
+    } else {
+        tweedeWaarde = verminderMet20(maakPositief(tweedeWaarde));
+    }
 
-            const eersteTekst = krijgTekst(eersteWaarde);
-            const tweedeTekst = krijgTekst(tweedeWaarde);
-            const derdeTekst = krijgTekst(derdeWaarde);
-            const vierdeTekst = krijgTekst(vierdeWaarde);
+    // Pas de regels toe op de derde en vierde waarden
+    derdeWaarde = verminderMet20(maakPositief(derdeWaarde));
+    vierdeWaarde = verminderMet20(maakPositief(vierdeWaarde));
 
-            return `Paweton:
+    // Voeg de bijbehorende tekst toe aan elke waarde
+    const eersteTekst = pawetonTeksten[eersteWaarde] || "Onbekend";
+    const tweedeTekst = pawetonTeksten[tweedeWaarde] || "Onbekend";
+    const derdeTekst = pawetonTeksten[derdeWaarde] || "Onbekend";
+    const vierdeTekst = pawetonTeksten[vierdeWaarde] || "Onbekend";
+
+    return `Paweton
 ${eersteWaarde} - ${eersteTekst}
 ${tweedeWaarde} - ${tweedeTekst}
 ${derdeWaarde} - ${derdeTekst}
 ${vierdeWaarde} - ${vierdeTekst}`;
-        }
+}
 
         // Voeg event listeners toe voor Enter-toets
         document.getElementById('dag').addEventListener('keypress', function (e) {
