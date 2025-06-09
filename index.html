@@ -184,7 +184,7 @@ ${paweton}`;
             const referentieDatumPasaran = new Date(2000, 0, 1);
             const dagenVerschil = Math.floor((datum - referentieDatumPasaran) / (1000 * 60 * 60 * 24));
             const pasaranIndex = (dagenVerschil % 5 + 5) % 5;
-            const pasaran = ["Legi", "Pahing", "Pon", "Wage", "Kliwon"];
+            const pasaran = ["Legi", "Paing", "Pon", "Wage", "Kliwon"];
             return pasaran[pasaranIndex];
         }
 
