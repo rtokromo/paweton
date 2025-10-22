@@ -458,7 +458,7 @@ Kerkdiensttijden (avond): ${avondTijden.join(', ')}
 ${paweton}`;
 
                 if (pechDag) {
-                    resultaat += `\n\nPech Dag: ${dagNaamUitkomst} + ${pasaran} = ${pechDag.dag} + ${pechDag.pasaran}`;
+                    resultaat += `\n\nPech Dag: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
                     
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
