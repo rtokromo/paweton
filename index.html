@@ -30,7 +30,7 @@
         }
         input, button {
             width: 90%;
-            padding: 10px;
+            padding: 12px;
             margin: 10px 0;
             border: 1px solid #8b5a2b;
             border-radius: 5px;
@@ -41,9 +41,18 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         button:hover {
             background-color: #6b4420;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        button:focus, input:focus {
+            outline: 2px solid #6b4420;
+            outline-offset: 2px;
         }
         #resultaat {
             margin-top: 20px;
@@ -53,49 +62,88 @@
             padding: 15px;
             border-radius: 5px;
             border: 1px solid #8b5a2b;
+            min-height: 50px;
+        }
+        .fout {
+            color: #d32f2f;
+            font-weight: bold;
+            border-color: #d32f2f;
         }
         .footer {
             margin-top: 20px;
             font-size: 0.9rem;
             color: #8b5a2b;
         }
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            input, button {
+                font-size: 16px;
+                padding: 12px;
+            }
+            #resultaat {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
     <h1>Javaanse Datum Calculator</h1>
     <div class="container">
-        <input type="number" id="dag" placeholder="Dag (1-31)">
-        <input type="number" id="maand" placeholder="Maand (1-12)">
-        <input type="number" id="jaar" placeholder="Jaar (bijv. 1980)">
+        <input type="number" id="dag" placeholder="Dag (bijv. 15)" min="1" max="31" title="Voer de dag in (1-31)">
+        <input type="number" id="maand" placeholder="Maand (bijv. 7)" min="1" max="12" title="Voer de maand in (1-12)">
+        <input type="number" id="jaar" placeholder="Jaar (bijv. 1990)" min="1800" max="2200" title="Voer het jaar in (1800-2200)">
         <button onclick="bereken()">Bereken</button>
+        <button onclick="vulHuidigeDatum()">Huidige Datum</button>
         <button onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
-        <div id="resultaat">Resultaat zal hier verschijnen</div>
+        <div id="resultaat" role="status" aria-live="polite" aria-atomic="true">Resultaat zal hier verschijnen</div>
     </div>
     <div class="footer">
         © 2025 Javaanse Datum Calculator. Kedjawen Javaweg
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Referentiedatum: 5 augustus 2023 is de eerste dag van Javaans jaar 6449
-        const referentieDatum = new Date(2023, 7, 5); // Maanden zijn 0-based in JavaScript
+        const elements = {
+            dag: document.getElementById('dag'),
+            maand: document.getElementById('maand'),
+            jaar: document.getElementById('jaar'),
+            resultaat: document.getElementById('resultaat'),
+            berekenKnop: document.querySelector('button[onclick="bereken()"]')
+        };
+
+        const MS_PER_DAY = 1000 * 60 * 60 * 24;
+        const referentieDatumUTC = Date.UTC(2023, 7, 5);
         const referentieJavaansJaar = 6449;
         const javaansJaarLengte = 355;
 
+        function datumNaarUTC(jaar, maand, dag) {
+            return Date.UTC(jaar, maand - 1, dag);
+        }
+
+        function dagVerschilUTC(datumUTC, referentieUTC) {
+            return Math.round((datumUTC - referentieUTC) / MS_PER_DAY);
+        }
+
         const dagWaarden = {
-            "Zondag": 5,
-            "Maandag": 4,
-            "Dinsdag": 3,
-            "Woensdag": 7,
-            "Donderdag": 8,
-            "Vrijdag": 6,
-            "Zaterdag": 9
+            "Zondag": 5, "Maandag": 4, "Dinsdag": 3,
+            "Woensdag": 7, "Donderdag": 8, "Vrijdag": 6, "Zaterdag": 9
         };
         const pasaranWaarden = {
-            "Kliwon": 8,
-            "Legi": 5,
-            "Paing": 9,
-            "Pon": 7,
-            "Wage": 4
+            "Kliwon": 8, "Legi": 5, "Paing": 9, "Pon": 7, "Wage": 4
         };
         const pawetonTeksten = {
             1: "Hono", 2: "Noto", 3: "Tjoro", 4: "Rosoko", 5: "Koyo",
@@ -104,106 +152,328 @@
             16: "Monggo", 17: "Gopoho", 18: "Bohoso", 19: "Thotoko", 20: "Ngotoko"
         };
 
+        const dagNamenUitkomst = {
+            "Zondag": "dotho", "Maandag": "goto", "Dinsdag": "goso",
+            "Woensdag": "joso", "Donderdag": "joho", "Vrijdag": "hodo", "Zaterdag": "woro"
+        };
+
+        const pechDagMapping = {
+            "dotho": {
+                "Wage": { dag: "hodo", pasaran: "Legi" },
+                "Legi": { dag: "woro", pasaran: "Paing" },
+                "Kliwon": { dag: "goso", pasaran: "Kliwon" },
+                "Pon": { dag: "goto", pasaran: "Wage" },
+                "Paing": { dag: "joso", pasaran: "Kliwon" }
+            },
+            "goso": {
+                "Legi": { dag: "joho", pasaran: "Kliwon" },
+                "Pon": { dag: "woro", pasaran: "Paing" },
+                "Kliwon": { dag: "dotho", pasaran: "Pon" },
+                "Wage": { dag: "joso", pasaran: "Wage" },
+                "Paing": { dag: "goto", pasaran: "Wage" }
+            },
+            "goto": {
+                "Kliwon": { dag: "goto", pasaran: "Wage" },
+                "Paing": { dag: "goso", pasaran: "Kliwon" },
+                "Wage": { dag: "joho", pasaran: "Kliwon" },
+                "Legi": { dag: "hodo", pasaran: "Legi" },
+                "Pon": { dag: "dotho", pasaran: "Pon" }
+            },
+            "hodo": {
+                "Wage": { dag: "woro", pasaran: "Paing" },
+                "Legi": { dag: "dotho", pasaran: "Pon" },
+                "Pon": { dag: "goso", pasaran: "Kliwon" },
+                "Kliwon": { dag: "joso", pasaran: "Legi" },
+                "Paing": { dag: "joho", pasaran: "Paing" }
+            },
+            "joho": {
+                "Pon": { dag: "joho", pasaran: "Paing" },
+                "Kliwon": { dag: "hodo", pasaran: "Pon" },
+                "Paing": { dag: "woro", pasaran: "Wage" },
+                "Wage": { dag: "goto", pasaran: "Wage" },
+                "Legi": { dag: "goso", pasaran: "Kliwon" }
+            },
+            "joso": {
+                "Paing": { dag: "hodo", pasaran: "Pon" },
+                "Legi": { dag: "goto", pasaran: "Wage" },
+                "Wage": { dag: "dotho", pasaran: "Pon" },
+                "Pon": { dag: "joso", pasaran: "Legi" },
+                "Kliwon": { dag: "joho", pasaran: "Paing" }
+            },
+            "woro": {
+                "Legi": { dag: "joso", pasaran: "Legi" },
+                "Kliwon": { dag: "woro", pasaran: "Wage" },
+                "Paing": { dag: "dotho", pasaran: "Kliwon" },
+                "Wage": { dag: "goso", pasaran: "Kliwon" },
+                "Pon": { dag: "hodo", pasaran: "Pon" }
+            }
+        };
+
+        const kalenderCyclus = [
+            {dag: "goso", pasaran: "kliwon"},
+            {dag: "joso", pasaran: "legi"},
+            {dag: "joho", pasaran: "Paing"},
+            {dag: "hodo", pasaran: "pon"},
+            {dag: "woro", pasaran: "wage"},
+            {dag: "dotho", pasaran: "kliwon"},
+            {dag: "goto", pasaran: "legi"},
+            {dag: "goso", pasaran: "Paing"},
+            {dag: "joso", pasaran: "pon"},
+            {dag: "joho", pasaran: "wage"},
+            {dag: "hodo", pasaran: "kliwon"},
+            {dag: "woro", pasaran: "legi"},
+            {dag: "dotho", pasaran: "Paing"},
+            {dag: "goto", pasaran: "pon"},
+            {dag: "goso", pasaran: "wage"},
+            {dag: "joso", pasaran: "kliwon"},
+            {dag: "joho", pasaran: "legi"},
+            {dag: "hodo", pasaran: "Paing"},
+            {dag: "woro", pasaran: "pon"},
+            {dag: "dotho", pasaran: "wage"},
+            {dag: "goto", pasaran: "kliwon"},
+            {dag: "goso", pasaran: "legi"},
+            {dag: "joso", pasaran: "Paing"},
+            {dag: "joho", pasaran: "pon"},
+            {dag: "hodo", pasaran: "wage"},
+            {dag: "woro", pasaran: "kliwon"},
+            {dag: "dotho", pasaran: "legi"},
+            {dag: "goto", pasaran: "Paing"},
+            {dag: "goso", pasaran: "pon"},
+            {dag: "joso", pasaran: "wage"},
+            {dag: "joho", pasaran: "kliwon"},
+            {dag: "hodo", pasaran: "legi"},
+            {dag: "woro", pasaran: "Paing"},
+            {dag: "dotho", pasaran: "pon"},
+            {dag: "goto", pasaran: "wage"}
+        ];
+
+        class ResultaatCache {
+            static cache = new Map();
+            static cacheGrootte = 50;
+            static getSleutel(dag, maand, jaar) { return `${dag}-${maand}-${jaar}`; }
+            static get(sleutel) { return this.cache.get(sleutel); }
+            static set(sleutel, resultaat) {
+                if (this.cache.size >= this.cacheGrootte) {
+                    this.cache.delete(this.cache.keys().next().value);
+                }
+                this.cache.set(sleutel, resultaat);
+            }
+        }
+
+        function vulHuidigeDatum() {
+            const nu = new Date();
+            elements.dag.value = nu.getDate();
+            elements.maand.value = nu.getMonth() + 1;
+            elements.jaar.value = nu.getFullYear();
+        }
+
         function exporteerNaarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const resultaat = document.getElementById('resultaat').textContent;
-            doc.text(resultaat, 10, 10);
-            doc.save('javaanse_datum.pdf');
+            const resultaat = elements.resultaat.textContent;
+            const datumInput = `${elements.dag.value}-${elements.maand.value}-${elements.jaar.value}`;
+            doc.setFontSize(16);
+            doc.text(`Javaanse Datum Calculator - ${datumInput}`, 10, 10);
+            doc.setFontSize(10);
+            doc.text(doc.splitTextToSize(resultaat, 180), 10, 20);
+            doc.save(`javaanse_datum_${datumInput.replace(/\//g, '-')}.pdf`);
         }
 
-        function bereken() {
-            const dag = parseInt(document.getElementById('dag').value);
-            const maand = parseInt(document.getElementById('maand').value) - 1; // Maanden zijn 0-based
-            const jaar = parseInt(document.getElementById('jaar').value);
-            const datum = new Date(jaar, maand, dag);
-
-            if (isNaN(datum.getTime())) {
-                document.getElementById('resultaat').textContent = "Ongeldige datum. Probeer opnieuw.";
-                return;
+        function vindKalenderIndex(dag, pasaran) {
+            const genormaliseerdePasaran = pasaran.toLowerCase() === "paing" ? "Paing" : pasaran.toLowerCase();
+            for (let i = 0; i < kalenderCyclus.length; i++) {
+                if (kalenderCyclus[i].dag === dag && kalenderCyclus[i].pasaran === genormaliseerdePasaran) {
+                    return i;
+                }
             }
+            return -1;
+        }
 
-            const javaansJaar = bepaalJavaansJaar(datum);
-            const [javaanseMaand, dagVanDeMaand] = bepaalJavaanseMaandEnDag(datum);
-            const pasaran = bepaalPasaran(datum);
-            const dagVanDeWeek = bepaalDagVanDeWeek(datum);
-            const dagWaarde = dagWaarden[dagVanDeWeek] || 0;
-            const pasaranWaarde = pasaranWaarden[pasaran] || 0;
-            const totaleWaarde = dagWaarde + pasaranWaarde;
-            const ligging = bepaalLigging(totaleWaarde);
-            const overdagTijden = berekenKerkdienstTijden(dagWaarde, 'overdag');
-            const avondTijden = berekenKerkdienstTijden(pasaranWaarde, 'avond');
-            const paweton = berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde);
+        function berekenTangal(origineleDag, originelePasaran, pechDag, pechPasaran) {
+            const vanIndex = vindKalenderIndex(origineleDag, originelePasaran);
+            const naarIndex = vindKalenderIndex(pechDag, pechPasaran);
+            if (vanIndex === -1 || naarIndex === -1) return null;
+            let verschil = naarIndex - vanIndex;
+            if (verschil < 0) verschil += 35;
+            return verschil - 1;
+        }
 
-            const resultaat = `Javaanse Jaar: ${javaansJaar}
+        function berekenSasi(pechDag, pechPasaran, origineleDag, originelePasaran) {
+            const vanIndex = vindKalenderIndex(pechDag, pechPasaran);
+            const naarIndex = vindKalenderIndex(origineleDag, originelePasaran);
+            if (vanIndex === -1 || naarIndex === -1) return null;
+            let verschil = naarIndex - vanIndex;
+            if (verschil < 0) verschil += 35;
+            let sasi = verschil - 1;
+            if (sasi > 9) {
+                sasi = sasi % 9;
+                if (sasi === 0) sasi = 9;
+            }
+            return sasi;
+        }
+
+        function berekenPechDag(dagNaam, pasaranNaam) {
+            const mapping = pechDagMapping[dagNaam];
+            if (mapping && mapping[pasaranNaam]) return mapping[pasaranNaam];
+            return null;
+        }
+
+        function valideerDatum(dag, maand, jaar) {
+            if (isNaN(dag) || isNaN(maand) || isNaN(jaar)) {
+                return { geldig: false, fout: "Vul alle velden in met geldige nummers." };
+            }
+            if (dag < 1 || dag > 31) return { geldig: false, fout: "Dag moet tussen 1 en 31 zijn." };
+            if (maand < 1 || maand > 12) return { geldig: false, fout: "Maand moet tussen 1 en 12 zijn." };
+            if (jaar < 1800 || jaar > 2200) return { geldig: false, fout: "Jaar moet tussen 1800 en 2200 zijn." };
+            const d = new Date(Date.UTC(jaar, maand - 1, dag));
+            if (d.getUTCDate() !== dag || d.getUTCMonth() !== maand - 1 || d.getUTCFullYear() !== jaar) {
+                return { geldig: false, fout: "Ongeldige datum. Controleer of de dag bestaat in deze maand." };
+            }
+            return { geldig: true };
+        }
+
+        function bepaalJavaansJaar(datumUTC) {
+            const dagenVerschil = dagVerschilUTC(datumUTC, referentieDatumUTC);
+            const jaarVerschil = Math.floor(dagenVerschil / javaansJaarLengte);
+            if (dagenVerschil < 0 && (dagenVerschil % javaansJaarLengte !== 0)) {
+                return referentieJavaansJaar + jaarVerschil - 1;
+            }
+            return referentieJavaansJaar + jaarVerschil;
+        }
+
+        async function bereken() {
+            const originalText = elements.berekenKnop.textContent;
+            elements.resultaat.classList.remove('fout');
+            elements.berekenKnop.textContent = "Berekenen...";
+            elements.berekenKnop.disabled = true;
+            elements.berekenKnop.classList.add('loading');
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                const dag = parseInt(elements.dag.value);
+                const maand = parseInt(elements.maand.value);
+                const jaar = parseInt(elements.jaar.value);
+
+                const sleutel = ResultaatCache.getSleutel(dag, maand, jaar);
+                const gecachedResultaat = ResultaatCache.get(sleutel);
+                if (gecachedResultaat) {
+                    elements.resultaat.textContent = gecachedResultaat;
+                    return;
+                }
+
+                const validatie = valideerDatum(dag, maand, jaar);
+                if (!validatie.geldig) {
+                    elements.resultaat.textContent = validatie.fout;
+                    elements.resultaat.classList.add('fout');
+                    return;
+                }
+
+                const datumUTC = datumNaarUTC(jaar, maand, dag);
+                const javaansJaar = bepaalJavaansJaar(datumUTC);
+                const [javaanseMaand, dagVanDeMaand] = bepaalJavaanseMaandEnDag(datumUTC);
+                const pasaran = bepaalPasaran(datumUTC);
+                const dagVanDeWeek = bepaalDagVanDeWeek(datumUTC);
+                const dagWaarde = dagWaarden[dagVanDeWeek] || 0;
+                const pasaranWaarde = pasaranWaarden[pasaran] || 0;
+                const totaleWaarde = dagWaarde + pasaranWaarde;
+                const ligging = bepaalLigging(totaleWaarde);
+                const overdagTijden = berekenKerkdienstTijden(dagWaarde, 'overdag');
+                const avondTijden = berekenKerkdienstTijden(pasaranWaarde, 'avond');
+                const paweton = berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde);
+                const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
+                const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
+
+                let resultaat = `Javaanse Jaar: ${javaansJaar}
 Javaanse Maand: ${javaanseMaand}
 Dag van de Javaanse Maand: ${dagVanDeMaand}
 Pasaran: ${pasaran}
-Dag van de Week: ${dagVanDeWeek}
+Dag van de Week: ${dagNaamUitkomst}
 Waarde van de Dag: ${dagWaarde}
 Waarde van de Pasaran: ${pasaranWaarde}
 Totale Waarde: ${totaleWaarde}
-Ligging: ${ligging}\n
+Ligging: ${ligging}
+
 Kerkdiensttijden (overdag): ${overdagTijden.join(', ')}
-Kerkdiensttijden (avond): ${avondTijden.join(', ')}\n
+Kerkdiensttijden (avond): ${avondTijden.join(', ')}
+
 ${paweton}`;
-            document.getElementById('resultaat').textContent = resultaat;
+
+                if (pechDag) {
+                    resultaat += `\n\nPech Dag: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
+                    const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
+                    const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
+                    if (tangal !== null && sasi !== null) {
+                        resultaat += `\n\nSiraman:\nTangal: ${tangal}\nSasi: ${sasi}`;
+                    }
+                }
+
+                elements.resultaat.textContent = resultaat;
+                ResultaatCache.set(sleutel, resultaat);
+
+            } catch (error) {
+                console.error("Berekenfout:", error);
+                let foutmelding = "Er is een fout opgetreden bij het berekenen. Probeer opnieuw.";
+                if (error.message.includes("Invalid date")) {
+                    foutmelding = "Ongeldige datum. Controleer de ingevoerde waarden.";
+                } else if (error.message.includes("RangeError")) {
+                    foutmelding = "De datum valt buiten het bereik van de calculator.";
+                }
+                elements.resultaat.textContent = foutmelding;
+                elements.resultaat.classList.add('fout');
+            } finally {
+                elements.berekenKnop.textContent = originalText;
+                elements.berekenKnop.disabled = false;
+                elements.berekenKnop.classList.remove('loading');
+            }
         }
 
-        function bepaalJavaansJaar(datum) {
-            const dagenVerschil = Math.floor((datum - referentieDatum) / (1000 * 60 * 60 * 24));
-            return referentieJavaansJaar + Math.floor(dagenVerschil / javaansJaarLengte);
-        }
+        elements.dag.addEventListener('blur', function() {
+            if (this.value < 1) this.value = 1;
+            if (this.value > 31) this.value = 31;
+        });
+        elements.maand.addEventListener('blur', function() {
+            if (this.value < 1) this.value = 1;
+            if (this.value > 12) this.value = 12;
+        });
+        elements.jaar.addEventListener('blur', function() {
+            if (this.value < 1800) this.value = 1800;
+            if (this.value > 2200) this.value = 2200;
+        });
 
-        function bepaalJavaanseMaandEnDag(datum) {
-            const dagenVerschil = Math.floor((datum - referentieDatum) / (1000 * 60 * 60 * 24));
+        function bepaalJavaanseMaandEnDag(datumUTC) {
+            const dagenVerschil = dagVerschilUTC(datumUTC, referentieDatumUTC);
             let dagenInHuidigJaar = dagenVerschil % javaansJaarLengte;
             if (dagenInHuidigJaar < 0) dagenInHuidigJaar += javaansJaarLengte;
             const javaanseMaanden = [
-                ["Koso Soworo (1)", 36],
-                ["Pobo (2)", 35],
-                ["Mono (3)", 36],
-                ["Somo (4)", 35],
-                ["Poko (5)", 36],
-                ["Bowoko (6)", 35],
-                ["Pono (7)", 36],
-                ["Woko (8)", 35],
-                ["Sono (9)", 36],
-                ["Noto (10)", 35]
+                ["Koso Soworo (1)", 36], ["Pobo (2)", 35], ["Mono (3)", 36],
+                ["Somo (4)", 35], ["Poko (5)", 36], ["Bowoko (6)", 35],
+                ["Pono (7)", 36], ["Woko (8)", 35], ["Sono (9)", 36], ["Noto (10)", 35]
             ];
             for (const [maandNaam, dagenInMaand] of javaanseMaanden) {
-                if (dagenInHuidigJaar < dagenInMaand) {
-                    return [maandNaam, dagenInHuidigJaar + 1];
-                }
+                if (dagenInHuidigJaar < dagenInMaand) return [maandNaam, dagenInHuidigJaar + 1];
                 dagenInHuidigJaar -= dagenInMaand;
             }
             return ["Onbekend", 0];
         }
 
-        function bepaalPasaran(datum) {
-            const referentieDatumPasaran = new Date(2000, 0, 1);
-            const dagenVerschil = Math.floor((datum - referentieDatumPasaran) / (1000 * 60 * 60 * 24));
+        function bepaalPasaran(datumUTC) {
+            const referentiePasaranUTC = Date.UTC(2000, 0, 1);
+            const dagenVerschil = dagVerschilUTC(datumUTC, referentiePasaranUTC);
             const pasaranIndex = (dagenVerschil % 5 + 5) % 5;
-            const pasaran = ["Legi", "Paing", "Pon", "Wage", "Kliwon"];
-            return pasaran[pasaranIndex];
+            return ["Legi", "Paing", "Pon", "Wage", "Kliwon"][pasaranIndex];
         }
 
-        function bepaalDagVanDeWeek(datum) {
-            const dagenVanDeWeek = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
-            return dagenVanDeWeek[datum.getDay()];
+        function bepaalDagVanDeWeek(datumUTC) {
+            return ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"][new Date(datumUTC).getUTCDay()];
         }
 
         function bepaalLigging(totaleWaarde) {
-            const liggingen = ["Noord", "Zuid", "Oost", "West"];
-            const index = (totaleWaarde - 1) % 4;
-            return liggingen[index];
+            return ["Noord", "Zuid", "Oost", "West"][(totaleWaarde - 1) % 4];
         }
 
         function berekenMinuten(uren) {
-            const eerste = uren[0];
-            const middelste = uren[Math.floor(uren.length / 2)];
-            const laatste = uren[uren.length - 1];
-            return (eerste + middelste + laatste) % 60;
+            return (uren[0] + uren[Math.floor(uren.length / 2)] + uren[uren.length - 1]) % 60;
         }
 
         function formatTijd12Uur(uur, minuten) {
@@ -222,64 +492,23 @@ ${paweton}`;
             return uren.map(uur => formatTijd12Uur(uur, minuten));
         }
 
-       function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
-    // Bereken de vier waarden
-    let eersteWaarde = dagVanDeMaand - dagWaarde; // Eerste aftrek: Dag van de Javaanse Maand - Waarde van de Dag
-    let tweedeWaarde = dagVanDeMaand - pasaranWaarde; // Tweede aftrek: Dag van de Javaanse Maand - Waarde van de Pasaran
-    let derdeWaarde = dagVanDeMaand;
-    let vierdeWaarde = totaleWaarde;
+        function berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde) {
+            const maakPositief = (w) => (w < 0 ? -w : w);
+            const verminderMet20 = (w) => (w > 20 ? w - 20 : w);
+            const krijgTekst = (w) => pawetonTeksten[w] || "Standaard";
 
-    // Functie om negatieve waarden om te zetten naar positief
-    const maakPositief = (waarde) => (waarde < 0 ? -waarde : waarde);
+            let e = verminderMet20(maakPositief(dagVanDeMaand - dagWaarde));
+            if (e === 0) e = 1;
+            let t = verminderMet20(maakPositief(dagVanDeMaand - pasaranWaarde));
+            if (t === 0) t = 1;
+            let d = verminderMet20(maakPositief(dagVanDeMaand));
+            let v = verminderMet20(maakPositief(totaleWaarde));
 
-    // Functie om waarden groter dan 20 te verminderen met 20
-    const verminderMet20 = (waarde) => (waarde > 20 ? waarde - 20 : waarde);
+            return `Paweton:\n${e} - ${krijgTekst(e)}\n${t} - ${krijgTekst(t)}\n${d} - ${krijgTekst(d)}\n${v} - ${krijgTekst(v)}`;
+        }
 
-    // Speciale regels voor de eerste en tweede waarden
-    if (dagVanDeMaand - dagWaarde === 0) {
-        eersteWaarde = dagWaarde; // Uitkomst wordt gelijkgesteld aan dagWaarde
-    } else {
-        eersteWaarde = verminderMet20(maakPositief(eersteWaarde));
-    }
-
-    if (dagVanDeMaand - pasaranWaarde === 0) {
-        tweedeWaarde = pasaranWaarde; // Uitkomst wordt gelijkgesteld aan pasaranWaarde
-    } else {
-        tweedeWaarde = verminderMet20(maakPositief(tweedeWaarde));
-    }
-
-    // Pas de regels toe op de derde en vierde waarden
-    derdeWaarde = verminderMet20(maakPositief(derdeWaarde));
-    vierdeWaarde = verminderMet20(maakPositief(vierdeWaarde));
-
-    // Voeg de bijbehorende tekst toe aan elke waarde
-    const eersteTekst = pawetonTeksten[eersteWaarde] || "Onbekend";
-    const tweedeTekst = pawetonTeksten[tweedeWaarde] || "Onbekend";
-    const derdeTekst = pawetonTeksten[derdeWaarde] || "Onbekend";
-    const vierdeTekst = pawetonTeksten[vierdeWaarde] || "Onbekend";
-
-    return `Paweton
-${eersteWaarde} - ${eersteTekst}
-${tweedeWaarde} - ${tweedeTekst}
-${derdeWaarde} - ${derdeTekst}
-${vierdeWaarde} - ${vierdeTekst}`;
-}
-
-        // Voeg event listeners toe voor Enter-toets
-        document.getElementById('dag').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                bereken();
-            }
-        });
-        document.getElementById('maand').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                bereken();
-            }
-        });
-        document.getElementById('jaar').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                bereken();
-            }
+        [elements.dag, elements.maand, elements.jaar].forEach(el => {
+            el.addEventListener('keypress', (e) => { if (e.key === 'Enter') bereken(); });
         });
     </script>
 </body>
