@@ -333,6 +333,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const kabedjan = berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek);
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
+                const kabedjanApes = berekenPechDag(kabedjan.dino, kabedjan.pasaran);
 
                 let resultaat = `Koto: ${javaansJaar}
 Sasi: ${javaanseMaand}
@@ -359,8 +360,17 @@ Totale waarde: ${kabedjan.totaleWaarde}
 Kabedjan-waarden:
 ${kabedjan.waarden}`;
 
+                if (kabedjanApes) {
+                    resultaat += `\n\nKabedjan Apes: ${kabedjan.dino} ${kabedjan.pasaran} = ${kabedjanApes.dag} ${kabedjanApes.pasaran}`;
+                    const kabedjanTangal = berekenTangal(kabedjan.dino, kabedjan.pasaran, kabedjanApes.dag, kabedjanApes.pasaran);
+                    const kabedjanSasi = berekenSasi(kabedjanApes.dag, kabedjanApes.pasaran, kabedjan.dino, kabedjan.pasaran);
+                    if (kabedjanTangal !== null && kabedjanSasi !== null) {
+                        resultaat += `\nKabedjan Siraman:\nTangal: ${kabedjanTangal}\nSasi: ${kabedjanSasi}`;
+                    }
+                }
+
                 if (pechDag) {
-                    resultaat += `\n\nPech Dag: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
+                    resultaat += `\n\nApes: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
