@@ -338,7 +338,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
 Javaanse Maand: ${javaanseMaand}
 Dag van de Javaanse Maand: ${dagVanDeMaand}
 Pasaran: ${pasaran}
-Dag van de Week: ${dagNaamUitkomst}
+Dino: ${dagNaamUitkomst}
 Waarde van de Dag: ${dagWaarde}
 Waarde van de Pasaran: ${pasaranWaarde}
 Totale Waarde: ${totaleWaarde}
@@ -350,7 +350,7 @@ Kerkdiensttijden (avond): ${avondTijden.join(', ')}
 ${paweton}
 
 Kabedjan:
-Dag: ${kabedjan.dag}
+Dino: ${kabedjan.dino}
 Pasaran: ${kabedjan.pasaran}
 Dagwaarde: ${kabedjan.dagWaarde}
 Pasaranwaarde: ${kabedjan.pasaranWaarde}
@@ -494,7 +494,7 @@ ${kabedjan.waarden}`;
                 .join("\n");
 
             return {
-                dag: kabedjanDag,
+                dino: dagNamenUitkomst[kabedjanDag] || kabedjanDag,
                 pasaran: kabedjanPasaran,
                 dagWaarde: kabedjanDagWaarde,
                 pasaranWaarde: kabedjanPasaranWaarde,
