@@ -333,22 +333,6 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const kabedjan = berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek);
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
-                const kabedjanApes = berekenPechDag(kabedjan.dino, kabedjan.pasaran);
-                let kabedjanApesWaarden = null;
-                if (kabedjanApes) {
-                    const apesWeekdag = Object.keys(dagNamenUitkomst)
-                        .find(weekdag => dagNamenUitkomst[weekdag] === kabedjanApes.dag);
-                    const apesDagWaarde = dagWaarden[apesWeekdag] || 0;
-                    const apesPasaranWaarde = pasaranWaarden[kabedjanApes.pasaran] || 0;
-                    kabedjanApesWaarden = {
-                        dag: kabedjanApes.dag,
-                        pasaran: kabedjanApes.pasaran,
-                        dagWaarde: apesDagWaarde,
-                        pasaranWaarde: apesPasaranWaarde,
-                        totaleWaarde: apesDagWaarde + apesPasaranWaarde
-                    };
-                }
-
                 let resultaat = `Koto: ${javaansJaar}
 Sasi: ${javaanseMaand}
 Tanggal: ${dagVanDeMaand}
@@ -374,17 +358,18 @@ Totale waarde: ${kabedjan.totaleWaarde}
 Kabedjan-waarden:
 ${kabedjan.waarden}`;
 
-                if (kabedjanApesWaarden) {
-                    resultaat += `\n\nKabedjan Apes:
-Dino: ${kabedjanApesWaarden.dag}
-Pasaran: ${kabedjanApesWaarden.pasaran}
-Dagwaarde: ${kabedjanApesWaarden.dagWaarde}
-Pasaranwaarde: ${kabedjanApesWaarden.pasaranWaarde}
-Totale waarde: ${kabedjanApesWaarden.totaleWaarde}`;
-                }
-
                 if (pechDag) {
-                    resultaat += `\n\nApes: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
+                    const apesWeekdag = Object.keys(dagNamenUitkomst)
+                        .find(weekdag => dagNamenUitkomst[weekdag] === pechDag.dag);
+                    const apesDagWaarde = dagWaarden[apesWeekdag] || 0;
+                    const apesPasaranWaarde = pasaranWaarden[pechDag.pasaran] || 0;
+                    const apesTotaleWaarde = apesDagWaarde + apesPasaranWaarde;
+                    resultaat += `\n\nApes:
+Dino: ${pechDag.dag}
+Pasaran: ${pechDag.pasaran}
+Dagwaarde: ${apesDagWaarde}
+Pasaranwaarde: ${apesPasaranWaarde}
+Totale waarde: ${apesTotaleWaarde}`;
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
