@@ -2,119 +2,69 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Javaanse Datum Calculator — index5 jaarcorrectie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Javaanse Datum Calculator — index5</title>
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #e6f0e6;
-            color: #4a3a2a;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-            background-image: url('https://www.transparenttextures.com/patterns/rice-paper.png');
-        }
-        h1 {
-            font-size: 2.5rem;
-            color: #6b4420;
-            margin-bottom: 20px;
-        }
-        .container {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 2px solid #8b5a2b;
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 400px;
-            margin: 0 auto;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        input, button {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #8b5a2b;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #8b5a2b;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #6b4420;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        button:focus, input:focus {
-            outline: 2px solid #6b4420;
-            outline-offset: 2px;
-        }
-        #resultaat {
-            margin-top: 20px;
-            white-space: pre-line;
-            font-size: 18px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #8b5a2b;
-            min-height: 50px;
-        }
-        .fout {
-            color: #d32f2f;
-            font-weight: bold;
-            border-color: #d32f2f;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #8b5a2b;
-        }
-        .loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        @media (max-width: 480px) {
-            .container {
-                margin: 10px;
-                padding: 15px;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            input, button {
-                font-size: 16px;
-                padding: 12px;
-            }
-            #resultaat {
-                font-size: 16px;
-                padding: 12px;
-            }
-        }
-    </style>
+:root{color-scheme:light;--brown:#69431f;--brown-dark:#4a2e14;--line:#d9c6a9;--paper:#fffdf8;--bg:#f3efe6;--text:#352b21;--muted:#74695d;--red:#bd2929}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(8px,3vw,28px);background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:0 auto}
+header{text-align:center;margin:0 0 18px}
+h1{font-size:clamp(1.55rem,5vw,2.2rem);margin:0;color:var(--brown)}
+.subtitle{margin:5px 0 0;color:var(--muted);font-size:.95rem}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 5px 18px #38230d12;padding:clamp(12px,3vw,22px)}
+.date-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.field{min-width:0}
+label{display:block;margin:0 0 6px;color:var(--muted);font-size:.9rem;font-weight:650}
+input{width:100%;min-width:0;min-height:46px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text);font:inherit}
+button{min-height:46px;padding:9px 14px;border:0;border-radius:9px;background:var(--brown);color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:background-color .18s ease,transform .18s ease}
+button:hover{background:var(--brown-dark)}
+button:active{transform:translateY(1px)}
+button:disabled{background:#aaa;cursor:not-allowed;transform:none}
+button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offset:2px}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:9px;margin-top:14px}
+.actions .secondary{background:#f2eadc;color:var(--brown-dark);border:1px solid var(--line)}
+.actions .secondary:hover{background:#e9dcc7}
+#resultaat{min-height:64px;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--text);text-align:left;white-space:pre-line;overflow-wrap:anywhere;line-height:1.6}
+#resultaat:empty{display:none}
+#resultaat.fout{border-color:var(--red);color:var(--red);font-weight:700}
+.footer{margin:14px 0 0;color:var(--muted);font-size:.82rem;text-align:center}
+.loading{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.65}}
+@media(max-width:560px){.date-fields{grid-template-columns:1fr;gap:9px}.actions{grid-template-columns:1fr}#resultaat{padding:12px;font-size:.95rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
-    <h1>Javaanse Datum Calculator</h1>
-    <div class="container">
-        <input type="number" id="dag" placeholder="Dag (bijv. 15)" min="1" max="31" title="Voer de dag in (1-31)">
-        <input type="number" id="maand" placeholder="Maand (bijv. 7)" min="1" max="12" title="Voer de maand in (1-12)">
-        <input type="number" id="jaar" placeholder="Jaar (bijv. 1990)" min="1800" max="2200" title="Voer het jaar in (1800-2200)">
-        <button onclick="bereken()">Bereken</button>
-        <button onclick="vulHuidigeDatum()">Huidige Datum</button>
-        <button onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
-        <div id="resultaat" role="status" aria-live="polite" aria-atomic="true">Resultaat zal hier verschijnen</div>
-    </div>
-    <div class="footer">
-        © 2025 Javaanse Datum Calculator. Kedjawen Javaweg
-    </div>
+<main>
+<header>
+<h1>Javaanse Datum Calculator</h1>
+<p class="subtitle">Javaanse dag-, jaar- en pasaranberekening</p>
+</header>
+<section class="card" aria-label="Javaanse datum berekenen">
+<div class="date-fields">
+<div class="field">
+<label for="dag">Dag</label>
+<input type="number" id="dag" placeholder="Bijv. 15" min="1" max="31" inputmode="numeric" title="Voer de dag in (1-31)">
+</div>
+<div class="field">
+<label for="maand">Maand</label>
+<input type="number" id="maand" placeholder="Bijv. 7" min="1" max="12" inputmode="numeric" title="Voer de maand in (1-12)">
+</div>
+<div class="field">
+<label for="jaar">Jaar</label>
+<input type="number" id="jaar" placeholder="Bijv. 1990" min="1800" max="2200" inputmode="numeric" title="Voer het jaar in (1800-2200)">
+</div>
+</div>
+<div class="actions">
+<button type="button" onclick="bereken()">Bereken</button>
+<button class="secondary" type="button" onclick="vulHuidigeDatum()">Huidige datum</button>
+<button class="secondary" type="button" onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
+</div>
+<div id="resultaat" role="status" aria-live="polite" aria-atomic="true">Resultaat verschijnt hier</div>
+</section>
+<footer class="footer">© 2025 Javaanse Datum Calculator · Kedjawen Javaweg</footer>
+</main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const elements = {
