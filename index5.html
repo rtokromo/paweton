@@ -334,6 +334,20 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
                 const kabedjanApes = berekenPechDag(kabedjan.dino, kabedjan.pasaran);
+                let kabedjanApesWaarden = null;
+                if (kabedjanApes) {
+                    const apesWeekdag = Object.keys(dagNamenUitkomst)
+                        .find(weekdag => dagNamenUitkomst[weekdag] === kabedjanApes.dag);
+                    const apesDagWaarde = dagWaarden[apesWeekdag] || 0;
+                    const apesPasaranWaarde = pasaranWaarden[kabedjanApes.pasaran] || 0;
+                    kabedjanApesWaarden = {
+                        dag: kabedjanApes.dag,
+                        pasaran: kabedjanApes.pasaran,
+                        dagWaarde: apesDagWaarde,
+                        pasaranWaarde: apesPasaranWaarde,
+                        totaleWaarde: apesDagWaarde + apesPasaranWaarde
+                    };
+                }
 
                 let resultaat = `Koto: ${javaansJaar}
 Sasi: ${javaanseMaand}
@@ -360,13 +374,13 @@ Totale waarde: ${kabedjan.totaleWaarde}
 Kabedjan-waarden:
 ${kabedjan.waarden}`;
 
-                if (kabedjanApes) {
-                    resultaat += `\n\nKabedjan Apes: ${kabedjan.dino} ${kabedjan.pasaran} = ${kabedjanApes.dag} ${kabedjanApes.pasaran}`;
-                    const kabedjanTangal = berekenTangal(kabedjan.dino, kabedjan.pasaran, kabedjanApes.dag, kabedjanApes.pasaran);
-                    const kabedjanSasi = berekenSasi(kabedjanApes.dag, kabedjanApes.pasaran, kabedjan.dino, kabedjan.pasaran);
-                    if (kabedjanTangal !== null && kabedjanSasi !== null) {
-                        resultaat += `\nKabedjan Siraman:\nTangal: ${kabedjanTangal}\nSasi: ${kabedjanSasi}`;
-                    }
+                if (kabedjanApesWaarden) {
+                    resultaat += `\n\nKabedjan Apes:
+Dino: ${kabedjanApesWaarden.dag}
+Pasaran: ${kabedjanApesWaarden.pasaran}
+Dagwaarde: ${kabedjanApesWaarden.dagWaarde}
+Pasaranwaarde: ${kabedjanApesWaarden.pasaranWaarde}
+Totale waarde: ${kabedjanApesWaarden.totaleWaarde}`;
                 }
 
                 if (pechDag) {
