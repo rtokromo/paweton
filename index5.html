@@ -330,6 +330,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const overdagTijden = berekenKerkdienstTijden(dagWaarde, 'overdag');
                 const avondTijden = berekenKerkdienstTijden(pasaranWaarde, 'avond');
                 const paweton = berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde);
+                const kabedjan = berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek);
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
 
@@ -346,7 +347,17 @@ Ligging: ${ligging}
 Kerkdiensttijden (overdag): ${overdagTijden.join(', ')}
 Kerkdiensttijden (avond): ${avondTijden.join(', ')}
 
-${paweton}`;
+${paweton}
+
+Kabedjan:
+Dag: ${kabedjan.dag}
+Pasaran: ${kabedjan.pasaran}
+Dagwaarde: ${kabedjan.dagWaarde}
+Pasaranwaarde: ${kabedjan.pasaranWaarde}
+Totale waarde: ${kabedjan.totaleWaarde}
+
+Kabedjan-waarden:
+${kabedjan.waarden}`;
 
                 if (pechDag) {
                     resultaat += `\n\nPech Dag: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
@@ -454,6 +465,42 @@ ${paweton}`;
             let v = verminderMet20(maakPositief(totaleWaarde));
 
             return `Paweton:\n${e} - ${krijgTekst(e)}\n${t} - ${krijgTekst(t)}\n${d} - ${krijgTekst(d)}\n${v} - ${krijgTekst(v)}`;
+        }
+
+        function berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek) {
+            const dagenVanDeWeek = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+            const pasaranCyclus = ["Legi", "Paing", "Pon", "Wage", "Kliwon"];
+
+            const huidigeDagIndex = dagenVanDeWeek.indexOf(dagVanDeWeek);
+            const kabedjanDag = dagenVanDeWeek[(huidigeDagIndex + 3) % 7];
+
+            const huidigePasaranIndex = pasaranCyclus.indexOf(pasaran);
+            const kabedjanPasaran = pasaranCyclus[(huidigePasaranIndex - 1 + 5) % 5];
+
+            const kabedjanDagWaarde = dagWaarden[kabedjanDag] || 0;
+            const kabedjanPasaranWaarde = pasaranWaarden[kabedjanPasaran] || 0;
+            const kabedjanTotaleWaarde = kabedjanDagWaarde + kabedjanPasaranWaarde;
+            const kabedjanGetal = waarde => Math.abs(waarde) % 20 || 20;
+
+            const waarden = [
+                kabedjanGetal(dagVanDeMaand - kabedjanDagWaarde),
+                kabedjanGetal(dagVanDeMaand - kabedjanPasaranWaarde),
+                kabedjanGetal(dagVanDeMaand),
+                kabedjanGetal(kabedjanTotaleWaarde)
+            ];
+
+            const kabedjanWaarden = waarden
+                .map((waarde, index) => `${index + 1}: ${waarde} - ${pawetonTeksten[waarde] || "Onbekend"}`)
+                .join("\n");
+
+            return {
+                dag: kabedjanDag,
+                pasaran: kabedjanPasaran,
+                dagWaarde: kabedjanDagWaarde,
+                pasaranWaarde: kabedjanPasaranWaarde,
+                totaleWaarde: kabedjanTotaleWaarde,
+                waarden: kabedjanWaarden
+            };
         }
 
         [elements.dag, elements.maand, elements.jaar].forEach(el => {
