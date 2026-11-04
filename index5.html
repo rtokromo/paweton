@@ -8,7 +8,7 @@
 :root{color-scheme:light;--brown:#69431f;--brown-dark:#4a2e14;--line:#d9c6a9;--paper:#fffdf8;--bg:#f3efe6;--text:#352b21;--muted:#74695d;--red:#bd2929}
 *{box-sizing:border-box}
 body{margin:0;padding:clamp(8px,3vw,28px);background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:760px;margin:0 auto}
+main{max-width:900px;margin:0 auto}
 header{text-align:center;margin:0 0 18px}
 h1{font-size:clamp(1.55rem,5vw,2.2rem);margin:0;color:var(--brown)}
 .subtitle{margin:5px 0 0;color:var(--muted);font-size:.95rem}
@@ -25,13 +25,24 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
 .actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:9px;margin-top:14px}
 .actions .secondary{background:#f2eadc;color:var(--brown-dark);border:1px solid var(--line)}
 .actions .secondary:hover{background:#e9dcc7}
-#resultaat{min-height:64px;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--text);text-align:left;white-space:pre-line;overflow-wrap:anywhere;line-height:1.6}
+#resultaat{margin-top:16px;text-align:left}
 #resultaat:empty{display:none}
-#resultaat.fout{border-color:var(--red);color:var(--red);font-weight:700}
+#resultaat.fout{padding:12px;border:1px solid var(--red);border-radius:10px;background:#fff;color:var(--red);font-weight:700}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.result-card{min-width:0;padding:14px;border:1px solid var(--line);border-radius:11px;background:var(--paper);box-shadow:0 2px 8px #38230d08}
+.result-card--wide{grid-column:1/-1}
+.result-card h2{margin:0 0 10px;color:var(--brown);font-size:1rem;line-height:1.3}
+.result-fields{display:grid;grid-template-columns:minmax(105px,.75fr) minmax(0,1.25fr);gap:7px 12px;margin:0}
+.result-fields dt{color:var(--muted);font-weight:600}
+.result-fields dd{min-width:0;margin:0;font-weight:650;overflow-wrap:anywhere}
+.result-list{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.result-list li{padding:7px 9px;border:1px solid #eadfce;border-radius:7px;background:#fff;font-weight:600;overflow-wrap:anywhere}
+.result-times{display:flex;flex-wrap:wrap;gap:7px}
+.result-times span{padding:6px 8px;border:1px solid #eadfce;border-radius:7px;background:#fff;font-size:.88rem;font-weight:600}
 .footer{margin:14px 0 0;color:var(--muted);font-size:.82rem;text-align:center}
 .loading{animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.65}}
-@media(max-width:560px){.date-fields{grid-template-columns:1fr;gap:9px}.actions{grid-template-columns:1fr}#resultaat{padding:12px;font-size:.95rem}}
+@media(max-width:560px){.date-fields{grid-template-columns:1fr;gap:9px}.actions{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr;gap:10px}.result-card--wide{grid-column:auto}.result-card{padding:12px}.result-fields{grid-template-columns:minmax(90px,.7fr) minmax(0,1.3fr);gap:6px 9px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -220,7 +231,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
         function exporteerNaarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const resultaat = elements.resultaat.textContent;
+            const resultaat = elements.resultaat.innerText || elements.resultaat.textContent;
             const datumInput = `${elements.dag.value}-${elements.maand.value}-${elements.jaar.value}`;
             doc.setFontSize(16);
             doc.text(`Javaanse Datum Calculator - ${datumInput}`, 10, 10);
@@ -290,6 +301,30 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             return referentieJavaansJaar + jaarVerschil;
         }
 
+        function ontsnapHtml(waarde) {
+            return String(waarde).replace(/[&<>"']/g, teken => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            })[teken]);
+        }
+
+        function maakResultaatKaart(titel, rijen, breed = false) {
+            const klasse = breed ? " result-card--wide" : "";
+            const inhoud = rijen.map(([label, waarde]) =>
+                `<dt>${ontsnapHtml(label)}</dt><dd>${ontsnapHtml(waarde)}</dd>`
+            ).join("");
+            return `<section class="result-card${klasse}"><h2>${ontsnapHtml(titel)}</h2><dl class="result-fields">${inhoud}</dl></section>`;
+        }
+
+        function maakWaardenKaart(titel, regels) {
+            const inhoud = regels.map(regel => `<li>${ontsnapHtml(regel)}</li>`).join("");
+            return `<section class="result-card"><h2>${ontsnapHtml(titel)}</h2><ul class="result-list">${inhoud}</ul></section>`;
+        }
+
+        function maakTijdenKaart(overdag, avond) {
+            const maakTijden = tijden => tijden.map(tijd => `<span>${ontsnapHtml(tijd)}</span>`).join("");
+            return `<section class="result-card"><h2>Kerkdiensttijden</h2><dl class="result-fields"><dt>Overdag</dt><dd><div class="result-times">${maakTijden(overdag)}</div></dd><dt>Avond</dt><dd><div class="result-times">${maakTijden(avond)}</div></dd></dl></section>`;
+        }
+
         async function bereken() {
             const originalText = elements.berekenKnop.textContent;
             elements.resultaat.classList.remove('fout');
@@ -307,7 +342,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const sleutel = ResultaatCache.getSleutel(dag, maand, jaar);
                 const gecachedResultaat = ResultaatCache.get(sleutel);
                 if (gecachedResultaat) {
-                    elements.resultaat.textContent = gecachedResultaat;
+                    elements.resultaat.innerHTML = gecachedResultaat;
                     return;
                 }
 
@@ -333,30 +368,31 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const kabedjan = berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek);
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
-                let resultaat = `Koto: ${javaansJaar}
-Sasi: ${javaanseMaand}
-Tanggal: ${dagVanDeMaand}
-Pasaran: ${pasaran}
-Dino: ${dagNaamUitkomst}
-Waarde van de Dag: ${dagWaarde}
-Waarde van de Pasaran: ${pasaranWaarde}
-Totale Waarde: ${totaleWaarde}
-Ligging: ${ligging}
-
-Kerkdiensttijden (overdag): ${overdagTijden.join(', ')}
-Kerkdiensttijden (avond): ${avondTijden.join(', ')}
-
-${paweton}
-
-Kabedjan:
-Dino: ${kabedjan.dino}
-Pasaran: ${kabedjan.pasaran}
-Dagwaarde: ${kabedjan.dagWaarde}
-Pasaranwaarde: ${kabedjan.pasaranWaarde}
-Totale waarde: ${kabedjan.totaleWaarde}
-
-Kabedjan-waarden:
-${kabedjan.waarden}`;
+                const resultaatKaarten = [
+                    maakResultaatKaart("Javaanse datum", [
+                        ["Koto", javaansJaar],
+                        ["Sasi", javaanseMaand],
+                        ["Tanggal", dagVanDeMaand],
+                        ["Pasaran", pasaran],
+                        ["Dino", dagNaamUitkomst]
+                    ], true),
+                    maakResultaatKaart("Dagwaarden", [
+                        ["Dagwaarde", dagWaarde],
+                        ["Pasaranwaarde", pasaranWaarde],
+                        ["Totale waarde", totaleWaarde],
+                        ["Ligging", ligging]
+                    ]),
+                    maakWaardenKaart("Paweton", paweton.split("\n").slice(1)),
+                    maakTijdenKaart(overdagTijden, avondTijden),
+                    maakResultaatKaart("Kabedjan", [
+                        ["Dino", kabedjan.dino],
+                        ["Pasaran", kabedjan.pasaran],
+                        ["Dagwaarde", kabedjan.dagWaarde],
+                        ["Pasaranwaarde", kabedjan.pasaranWaarde],
+                        ["Totale waarde", kabedjan.totaleWaarde]
+                    ]),
+                    maakWaardenKaart("Kabedjan Paweton", kabedjan.waarden.split("\n"))
+                ];
 
                 if (pechDag) {
                     const apesWeekdag = Object.keys(dagNamenUitkomst)
@@ -364,20 +400,26 @@ ${kabedjan.waarden}`;
                     const apesDagWaarde = dagWaarden[apesWeekdag] || 0;
                     const apesPasaranWaarde = pasaranWaarden[pechDag.pasaran] || 0;
                     const apesTotaleWaarde = apesDagWaarde + apesPasaranWaarde;
-                    resultaat += `\n\nApes:
-Dino: ${pechDag.dag}
-Pasaran: ${pechDag.pasaran}
-Dagwaarde: ${apesDagWaarde}
-Pasaranwaarde: ${apesPasaranWaarde}
-Totale waarde: ${apesTotaleWaarde}`;
+                    resultaatKaarten.push(maakResultaatKaart("Apes", [
+                        ["Dino", pechDag.dag],
+                        ["Pasaran", pechDag.pasaran],
+                        ["Dagwaarde", apesDagWaarde],
+                        ["Pasaranwaarde", apesPasaranWaarde],
+                        ["Totale waarde", apesTotaleWaarde]
+                    ]));
+
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
-                        resultaat += `\n\nSiraman:\nTangal: ${tangal}\nSasi: ${sasi}`;
+                        resultaatKaarten.push(maakResultaatKaart("Siraman", [
+                            ["Tangal", tangal],
+                            ["Sasi", sasi]
+                        ]));
                     }
                 }
 
-                elements.resultaat.textContent = resultaat;
+                const resultaat = `<div class="result-grid">${resultaatKaarten.join("")}</div>`;
+                elements.resultaat.innerHTML = resultaat;
                 ResultaatCache.set(sleutel, resultaat);
 
             } catch (error) {
@@ -499,7 +541,7 @@ Totale waarde: ${apesTotaleWaarde}`;
             ];
 
             const kabedjanWaarden = waarden
-                .map((waarde, index) => `${index + 1}: ${waarde} - ${pawetonTeksten[waarde] || "Onbekend"}`)
+                .map(waarde => `${waarde} - ${pawetonTeksten[waarde] || "Onbekend"}`)
                 .join("\n");
 
             return {
