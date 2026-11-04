@@ -2,119 +2,80 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Javaanse Datum Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Paweton — Javaanse Datum Calculator</title>
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #e6f0e6;
-            color: #4a3a2a;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-            background-image: url('https://www.transparenttextures.com/patterns/rice-paper.png');
-        }
-        h1 {
-            font-size: 2.5rem;
-            color: #6b4420;
-            margin-bottom: 20px;
-        }
-        .container {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 2px solid #8b5a2b;
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 400px;
-            margin: 0 auto;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        input, button {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #8b5a2b;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #8b5a2b;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #6b4420;
-        }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        button:focus, input:focus {
-            outline: 2px solid #6b4420;
-            outline-offset: 2px;
-        }
-        #resultaat {
-            margin-top: 20px;
-            white-space: pre-line;
-            font-size: 18px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 5px;
-            border: 1px solid #8b5a2b;
-            min-height: 50px;
-        }
-        .fout {
-            color: #d32f2f;
-            font-weight: bold;
-            border-color: #d32f2f;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #8b5a2b;
-        }
-        .loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        @media (max-width: 480px) {
-            .container {
-                margin: 10px;
-                padding: 15px;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            input, button {
-                font-size: 16px;
-                padding: 12px;
-            }
-            #resultaat {
-                font-size: 16px;
-                padding: 12px;
-            }
-        }
-    </style>
+:root{color-scheme:light;--brown:#69431f;--brown-dark:#4a2e14;--line:#d9c6a9;--paper:#fffdf8;--bg:#f3efe6;--text:#352b21;--muted:#74695d;--red:#bd2929}
+*{box-sizing:border-box}
+body{margin:0;padding:clamp(8px,3vw,28px);background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:900px;margin:0 auto}
+header{text-align:center;margin:0 0 18px}
+h1{font-size:clamp(1.55rem,5vw,2.2rem);margin:0;color:var(--brown)}
+.subtitle{margin:5px 0 0;color:var(--muted);font-size:.95rem}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 5px 18px #38230d12;padding:clamp(12px,3vw,22px)}
+.date-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.field{min-width:0}
+label{display:block;margin:0 0 6px;color:var(--muted);font-size:.9rem;font-weight:650}
+input{width:100%;min-width:0;min-height:46px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text);font:inherit}
+button{min-height:46px;padding:9px 14px;border:0;border-radius:9px;background:var(--brown);color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:background-color .18s ease,transform .18s ease}
+button:hover{background:var(--brown-dark)}
+button:active{transform:translateY(1px)}
+button:disabled{background:#aaa;cursor:not-allowed;transform:none}
+button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offset:2px}
+.actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:9px;margin-top:14px}
+.actions .secondary{background:#f2eadc;color:var(--brown-dark);border:1px solid var(--line)}
+.actions .secondary:hover{background:#e9dcc7}
+#resultaat{margin-top:16px;text-align:left}
+#resultaat:empty{display:none}
+#resultaat.fout{padding:12px;border:1px solid var(--red);border-radius:10px;background:#fff;color:var(--red);font-weight:700}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.result-card{min-width:0;padding:14px;border:1px solid var(--line);border-radius:11px;background:var(--paper);box-shadow:0 2px 8px #38230d08}
+.result-card--wide{grid-column:1/-1}
+.result-card h2{margin:0 0 10px;color:var(--brown);font-size:1rem;line-height:1.3}
+.result-fields{display:grid;grid-template-columns:minmax(105px,.75fr) minmax(0,1.25fr);gap:7px 12px;margin:0}
+.result-fields dt{color:var(--muted);font-weight:600}
+.result-fields dd{min-width:0;margin:0;font-weight:650;overflow-wrap:anywhere}
+.result-list{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.result-list li{padding:7px 9px;border:1px solid #eadfce;border-radius:7px;background:#fff;font-weight:600;overflow-wrap:anywhere}
+.result-times{display:flex;flex-wrap:wrap;gap:7px}
+.result-times span{padding:6px 8px;border:1px solid #eadfce;border-radius:7px;background:#fff;font-size:.88rem;font-weight:600}
+.footer{margin:14px 0 0;color:var(--muted);font-size:.82rem;text-align:center}
+.loading{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.65}}
+@media(max-width:560px){.date-fields{grid-template-columns:1fr;gap:9px}.actions{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr;gap:10px}.result-card--wide{grid-column:auto}.result-card{padding:12px}.result-fields{grid-template-columns:minmax(90px,.7fr) minmax(0,1.3fr);gap:6px 9px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
-    <h1>Javaanse Datum Calculator</h1>
-    <div class="container">
-        <input type="number" id="dag" placeholder="Dag (bijv. 15)" min="1" max="31" title="Voer de dag in (1-31)">
-        <input type="number" id="maand" placeholder="Maand (bijv. 7)" min="1" max="12" title="Voer de maand in (1-12)">
-        <input type="number" id="jaar" placeholder="Jaar (bijv. 1990)" min="1800" max="2200" title="Voer het jaar in (1800-2200)">
-        <button onclick="bereken()">Bereken</button>
-        <button onclick="vulHuidigeDatum()">Huidige Datum</button>
-        <button onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
-        <div id="resultaat" role="status" aria-live="polite" aria-atomic="true">Resultaat zal hier verschijnen</div>
-    </div>
-    <div class="footer">
-        © 2025 Javaanse Datum Calculator. Kedjawen Javaweg
-    </div>
+<main>
+<header>
+<h1>Javaanse Datum Calculator</h1>
+<p class="subtitle">Javaanse dag-, jaar- en pasaranberekening</p>
+</header>
+<section class="card" aria-label="Javaanse datum berekenen">
+<div class="date-fields">
+<div class="field">
+<label for="dag">Dag</label>
+<input type="number" id="dag" placeholder="Bijv. 15" min="1" max="31" inputmode="numeric" title="Voer de dag in (1-31)">
+</div>
+<div class="field">
+<label for="maand">Maand</label>
+<input type="number" id="maand" placeholder="Bijv. 7" min="1" max="12" inputmode="numeric" title="Voer de maand in (1-12)">
+</div>
+<div class="field">
+<label for="jaar">Jaar</label>
+<input type="number" id="jaar" placeholder="Bijv. 1990" min="1800" max="2200" inputmode="numeric" title="Voer het jaar in (1800-2200)">
+</div>
+</div>
+<div class="actions">
+<button type="button" onclick="bereken()">Bereken</button>
+<button class="secondary" type="button" onclick="vulHuidigeDatum()">Huidige datum</button>
+<button class="secondary" type="button" onclick="exporteerNaarPDF()">Exporteer naar PDF</button>
+</div>
+<div id="resultaat" role="status" aria-live="polite" aria-atomic="true">Resultaat verschijnt hier</div>
+</section>
+<footer class="footer">© 2025 Javaanse Datum Calculator · Kedjawen Javaweg</footer>
+</main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const elements = {
@@ -270,7 +231,7 @@
         function exporteerNaarPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const resultaat = elements.resultaat.textContent;
+            const resultaat = elements.resultaat.innerText || elements.resultaat.textContent;
             const datumInput = `${elements.dag.value}-${elements.maand.value}-${elements.jaar.value}`;
             doc.setFontSize(16);
             doc.text(`Javaanse Datum Calculator - ${datumInput}`, 10, 10);
@@ -334,11 +295,34 @@
 
         function bepaalJavaansJaar(datumUTC) {
             const dagenVerschil = dagVerschilUTC(datumUTC, referentieDatumUTC);
+            // Math.floor werkt ook voor negatieve dagverschillen: vóór de referentiedatum
+            // valt de datum in het vorige Javaanse jaar zonder extra jaarcorrectie.
             const jaarVerschil = Math.floor(dagenVerschil / javaansJaarLengte);
-            if (dagenVerschil < 0 && (dagenVerschil % javaansJaarLengte !== 0)) {
-                return referentieJavaansJaar + jaarVerschil - 1;
-            }
             return referentieJavaansJaar + jaarVerschil;
+        }
+
+        function ontsnapHtml(waarde) {
+            return String(waarde).replace(/[&<>"']/g, teken => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            })[teken]);
+        }
+
+        function maakResultaatKaart(titel, rijen, breed = false) {
+            const klasse = breed ? " result-card--wide" : "";
+            const inhoud = rijen.map(([label, waarde]) =>
+                `<dt>${ontsnapHtml(label)}</dt><dd>${ontsnapHtml(waarde)}</dd>`
+            ).join("");
+            return `<section class="result-card${klasse}"><h2>${ontsnapHtml(titel)}</h2><dl class="result-fields">${inhoud}</dl></section>`;
+        }
+
+        function maakWaardenKaart(titel, regels) {
+            const inhoud = regels.map(regel => `<li>${ontsnapHtml(regel)}</li>`).join("");
+            return `<section class="result-card"><h2>${ontsnapHtml(titel)}</h2><ul class="result-list">${inhoud}</ul></section>`;
+        }
+
+        function maakTijdenKaart(overdag, avond) {
+            const maakTijden = tijden => tijden.map(tijd => `<span>${ontsnapHtml(tijd)}</span>`).join("");
+            return `<section class="result-card"><h2>Kerkdiensttijden</h2><dl class="result-fields"><dt>Overdag</dt><dd><div class="result-times">${maakTijden(overdag)}</div></dd><dt>Avond</dt><dd><div class="result-times">${maakTijden(avond)}</div></dd></dl></section>`;
         }
 
         async function bereken() {
@@ -358,7 +342,7 @@
                 const sleutel = ResultaatCache.getSleutel(dag, maand, jaar);
                 const gecachedResultaat = ResultaatCache.get(sleutel);
                 if (gecachedResultaat) {
-                    elements.resultaat.textContent = gecachedResultaat;
+                    elements.resultaat.innerHTML = gecachedResultaat;
                     return;
                 }
 
@@ -381,34 +365,61 @@
                 const overdagTijden = berekenKerkdienstTijden(dagWaarde, 'overdag');
                 const avondTijden = berekenKerkdienstTijden(pasaranWaarde, 'avond');
                 const paweton = berekenPaweton(dagVanDeMaand, pasaranWaarde, dagWaarde, totaleWaarde);
+                const kabedjan = berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek);
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
-
-                let resultaat = `Javaanse Jaar: ${javaansJaar}
-Javaanse Maand: ${javaanseMaand}
-Dag van de Javaanse Maand: ${dagVanDeMaand}
-Pasaran: ${pasaran}
-Dag van de Week: ${dagNaamUitkomst}
-Waarde van de Dag: ${dagWaarde}
-Waarde van de Pasaran: ${pasaranWaarde}
-Totale Waarde: ${totaleWaarde}
-Ligging: ${ligging}
-
-Kerkdiensttijden (overdag): ${overdagTijden.join(', ')}
-Kerkdiensttijden (avond): ${avondTijden.join(', ')}
-
-${paweton}`;
+                const resultaatKaarten = [
+                    maakResultaatKaart("Javaanse datum", [
+                        ["Koto", javaansJaar],
+                        ["Sasi", javaanseMaand],
+                        ["Tanggal", dagVanDeMaand],
+                        ["Pasaran", pasaran],
+                        ["Dino", dagNaamUitkomst]
+                    ], true),
+                    maakResultaatKaart("Dagwaarden", [
+                        ["Dagwaarde", dagWaarde],
+                        ["Pasaranwaarde", pasaranWaarde],
+                        ["Totale waarde", totaleWaarde],
+                        ["Ligging", ligging]
+                    ]),
+                    maakWaardenKaart("Paweton", paweton.split("\n").slice(1)),
+                    maakTijdenKaart(overdagTijden, avondTijden),
+                    maakResultaatKaart("Kabedjan", [
+                        ["Dino", kabedjan.dino],
+                        ["Pasaran", kabedjan.pasaran],
+                        ["Dagwaarde", kabedjan.dagWaarde],
+                        ["Pasaranwaarde", kabedjan.pasaranWaarde],
+                        ["Totale waarde", kabedjan.totaleWaarde]
+                    ]),
+                    maakWaardenKaart("Kabedjan Paweton", kabedjan.waarden.split("\n"))
+                ];
 
                 if (pechDag) {
-                    resultaat += `\n\nPech Dag: ${dagNaamUitkomst} ${pasaran} = ${pechDag.dag} ${pechDag.pasaran}`;
+                    const apesWeekdag = Object.keys(dagNamenUitkomst)
+                        .find(weekdag => dagNamenUitkomst[weekdag] === pechDag.dag);
+                    const apesDagWaarde = dagWaarden[apesWeekdag] || 0;
+                    const apesPasaranWaarde = pasaranWaarden[pechDag.pasaran] || 0;
+                    const apesTotaleWaarde = apesDagWaarde + apesPasaranWaarde;
+                    resultaatKaarten.push(maakResultaatKaart("Apes", [
+                        ["Dino", pechDag.dag],
+                        ["Pasaran", pechDag.pasaran],
+                        ["Dagwaarde", apesDagWaarde],
+                        ["Pasaranwaarde", apesPasaranWaarde],
+                        ["Totale waarde", apesTotaleWaarde]
+                    ]));
+
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
-                        resultaat += `\n\nSiraman:\nTangal: ${tangal}\nSasi: ${sasi}`;
+                        resultaatKaarten.push(maakResultaatKaart("Siraman", [
+                            ["Tanggal", tangal],
+                            ["Sasi", sasi]
+                        ]));
                     }
                 }
 
-                elements.resultaat.textContent = resultaat;
+                const resultaat = `<div class="result-grid">${resultaatKaarten.join("")}</div>`;
+                elements.resultaat.innerHTML = resultaat;
                 ResultaatCache.set(sleutel, resultaat);
 
             } catch (error) {
@@ -505,6 +516,42 @@ ${paweton}`;
             let v = verminderMet20(maakPositief(totaleWaarde));
 
             return `Paweton:\n${e} - ${krijgTekst(e)}\n${t} - ${krijgTekst(t)}\n${d} - ${krijgTekst(d)}\n${v} - ${krijgTekst(v)}`;
+        }
+
+        function berekenKabedjan(dagVanDeMaand, pasaran, dagVanDeWeek) {
+            const dagenVanDeWeek = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+            const pasaranCyclus = ["Legi", "Paing", "Pon", "Wage", "Kliwon"];
+
+            const huidigeDagIndex = dagenVanDeWeek.indexOf(dagVanDeWeek);
+            const kabedjanDag = dagenVanDeWeek[(huidigeDagIndex + 3) % 7];
+
+            const huidigePasaranIndex = pasaranCyclus.indexOf(pasaran);
+            const kabedjanPasaran = pasaranCyclus[(huidigePasaranIndex - 1 + 5) % 5];
+
+            const kabedjanDagWaarde = dagWaarden[kabedjanDag] || 0;
+            const kabedjanPasaranWaarde = pasaranWaarden[kabedjanPasaran] || 0;
+            const kabedjanTotaleWaarde = kabedjanDagWaarde + kabedjanPasaranWaarde;
+            const kabedjanGetal = waarde => Math.abs(waarde) % 20 || 20;
+
+            const waarden = [
+                kabedjanGetal(dagVanDeMaand - kabedjanDagWaarde),
+                kabedjanGetal(dagVanDeMaand - kabedjanPasaranWaarde),
+                kabedjanGetal(dagVanDeMaand),
+                kabedjanGetal(kabedjanTotaleWaarde)
+            ];
+
+            const kabedjanWaarden = waarden
+                .map(waarde => `${waarde} - ${pawetonTeksten[waarde] || "Onbekend"}`)
+                .join("\n");
+
+            return {
+                dino: dagNamenUitkomst[kabedjanDag] || kabedjanDag,
+                pasaran: kabedjanPasaran,
+                dagWaarde: kabedjanDagWaarde,
+                pasaranWaarde: kabedjanPasaranWaarde,
+                totaleWaarde: kabedjanTotaleWaarde,
+                waarden: kabedjanWaarden
+            };
         }
 
         [elements.dag, elements.maand, elements.jaar].forEach(el => {
