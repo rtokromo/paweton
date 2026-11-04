@@ -307,6 +307,11 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             })[teken]);
         }
 
+        function formatteerDinoNaam(naam) {
+            const tekst = String(naam || "");
+            return tekst ? tekst.charAt(0).toUpperCase() + tekst.slice(1) : tekst;
+        }
+
         function maakResultaatKaart(titel, rijen, breed = false) {
             const klasse = breed ? " result-card--wide" : "";
             const inhoud = rijen.map(([label, waarde]) =>
@@ -374,22 +379,22 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                         ["Sasi", javaanseMaand],
                         ["Tanggal", dagVanDeMaand],
                         ["Pasaran", pasaran],
-                        ["Dino", dagNaamUitkomst]
+                        ["Dino", formatteerDinoNaam(dagNaamUitkomst)]
                     ], true),
-                    maakResultaatKaart("Dagwaarden", [
-                        ["Dagwaarde", dagWaarde],
-                        ["Pasaranwaarde", pasaranWaarde],
-                        ["Totale waarde", totaleWaarde],
+                    maakResultaatKaart("Ongkoh", [
+                        ["Ongkoh Dino", dagWaarde],
+                        ["Ongkoh Pasaran", pasaranWaarde],
+                        ["Ongkoh", totaleWaarde],
                         ["Ligging", ligging]
                     ]),
                     maakWaardenKaart("Paweton", paweton.split("\n").slice(1)),
                     maakTijdenKaart(overdagTijden, avondTijden),
                     maakResultaatKaart("Kabedjan", [
-                        ["Dino", kabedjan.dino],
+                        ["Dino", formatteerDinoNaam(kabedjan.dino)],
                         ["Pasaran", kabedjan.pasaran],
-                        ["Dagwaarde", kabedjan.dagWaarde],
-                        ["Pasaranwaarde", kabedjan.pasaranWaarde],
-                        ["Totale waarde", kabedjan.totaleWaarde]
+                        ["Ongkoh Dino", kabedjan.dagWaarde],
+                        ["Ongkoh Pasaran", kabedjan.pasaranWaarde],
+                        ["Ongkoh", kabedjan.totaleWaarde]
                     ]),
                     maakWaardenKaart("Kabedjan Paweton", kabedjan.waarden.split("\n"))
                 ];
@@ -401,11 +406,11 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                     const apesPasaranWaarde = pasaranWaarden[pechDag.pasaran] || 0;
                     const apesTotaleWaarde = apesDagWaarde + apesPasaranWaarde;
                     resultaatKaarten.push(maakResultaatKaart("Apes", [
-                        ["Dino", pechDag.dag],
+                        ["Dino", formatteerDinoNaam(pechDag.dag)],
                         ["Pasaran", pechDag.pasaran],
-                        ["Dagwaarde", apesDagWaarde],
-                        ["Pasaranwaarde", apesPasaranWaarde],
-                        ["Totale waarde", apesTotaleWaarde]
+                        ["Ongkoh Dino", apesDagWaarde],
+                        ["Ongkoh Pasaran", apesPasaranWaarde],
+                        ["Ongkoh", apesTotaleWaarde]
                     ]));
 
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
@@ -422,7 +427,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                                 ["Volgende", formatteerSiramanDatum(siramanDatums.volgende)]
                             );
                         }
-                        resultaatKaarten.push(maakResultaatKaart("Siraman — huidig jaar", siramanRijen));
+                        resultaatKaarten.push(maakResultaatKaart("Siraman", siramanRijen));
                     }
                 }
 
@@ -529,7 +534,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
         }
 
         function bepaalLigging(totaleWaarde) {
-            return ["Noord", "Zuid", "Oost", "West"][(totaleWaarde - 1) % 4];
+            return ["Lor", "Kidul", "Wetan", "Kulon"][(totaleWaarde - 1) % 4];
         }
 
         function berekenMinuten(uren) {
