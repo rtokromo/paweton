@@ -413,8 +413,8 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                     if (tangal !== null && sasi !== null) {
                         const siramanDatums = bepaalSiramanDatums(datumUTC, sasi, tangal);
                         const siramanRijen = [
-                            ["Tanggal", tangal],
-                            ["Sasi", sasi]
+                            ["Sasi", sasi],
+                            ["Tanggal", tangal]
                         ];
                         if (siramanDatums) {
                             siramanRijen.push(
@@ -471,6 +471,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 .slice(0, maandIndex)
                 .reduce((totaal, lengte) => totaal + lengte, 0);
             const dagenNaJaarstart = dagenVoorSasi + tanggal - 1;
+            // Gebruik het Javaanse jaar waarin de ingevoerde datum valt als uitgangspunt.
             const jaarIndex = Math.floor(dagVerschilUTC(datumUTC, referentieDatumUTC) / javaansJaarLengte);
             const maakDatum = index =>
                 referentieDatumUTC + (index * javaansJaarLengte + dagenNaJaarstart) * MS_PER_DAY;
