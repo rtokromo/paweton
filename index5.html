@@ -55,16 +55,16 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
 <section class="card" aria-label="Javaanse datum berekenen">
 <div class="date-fields">
 <div class="field">
-<label for="dag">Dag</label>
-<input type="number" id="dag" placeholder="Bijv. 15" min="1" max="31" inputmode="numeric" title="Voer de dag in (1-31)">
+<label for="dag">Tanggal</label>
+<input type="number" id="dag" placeholder="Bijv. 15" min="1" max="31" inputmode="numeric" title="Voer Tanggal in (1-31)">
 </div>
 <div class="field">
-<label for="maand">Maand</label>
-<input type="number" id="maand" placeholder="Bijv. 7" min="1" max="12" inputmode="numeric" title="Voer de maand in (1-12)">
+<label for="maand">Sasi</label>
+<input type="number" id="maand" placeholder="Bijv. 7" min="1" max="12" inputmode="numeric" title="Voer Sasi in (1-12)">
 </div>
 <div class="field">
-<label for="jaar">Jaar</label>
-<input type="number" id="jaar" placeholder="Bijv. 1990" min="1800" max="2200" inputmode="numeric" title="Voer het jaar in (1800-2200)">
+<label for="jaar">Koto</label>
+<input type="number" id="jaar" placeholder="Bijv. 1990" min="1800" max="2200" inputmode="numeric" title="Voer Koto in (1800-2200)">
 </div>
 </div>
 <div class="actions">
@@ -283,9 +283,9 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             if (isNaN(dag) || isNaN(maand) || isNaN(jaar)) {
                 return { geldig: false, fout: "Vul alle velden in met geldige nummers." };
             }
-            if (dag < 1 || dag > 31) return { geldig: false, fout: "Dag moet tussen 1 en 31 zijn." };
-            if (maand < 1 || maand > 12) return { geldig: false, fout: "Maand moet tussen 1 en 12 zijn." };
-            if (jaar < 1800 || jaar > 2200) return { geldig: false, fout: "Jaar moet tussen 1800 en 2200 zijn." };
+            if (dag < 1 || dag > 31) return { geldig: false, fout: "Tanggal moet tussen 1 en 31 zijn." };
+            if (maand < 1 || maand > 12) return { geldig: false, fout: "Sasi moet tussen 1 en 12 zijn." };
+            if (jaar < 1800 || jaar > 2200) return { geldig: false, fout: "Koto moet tussen 1800 en 2200 zijn." };
             const d = new Date(Date.UTC(jaar, maand - 1, dag));
             if (d.getUTCDate() !== dag || d.getUTCMonth() !== maand - 1 || d.getUTCFullYear() !== jaar) {
                 return { geldig: false, fout: "Ongeldige datum. Controleer of de dag bestaat in deze maand." };
