@@ -411,10 +411,18 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
-                        resultaatKaarten.push(maakResultaatKaart("Siraman", [
+                        const siramanDatums = bepaalSiramanDatums(datumUTC, sasi, tangal);
+                        const siramanRijen = [
                             ["Tanggal", tangal],
                             ["Sasi", sasi]
-                        ]));
+                        ];
+                        if (siramanDatums) {
+                            siramanRijen.push(
+                                ["Afgelopen", formatteerSiramanDatum(siramanDatums.laatste)],
+                                ["Volgende", formatteerSiramanDatum(siramanDatums.volgende)]
+                            );
+                        }
+                        resultaatKaarten.push(maakResultaatKaart("Siraman", siramanRijen));
                     }
                 }
 
@@ -451,6 +459,41 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             if (this.value < 1800) this.value = 1800;
             if (this.value > 2200) this.value = 2200;
         });
+
+        function bepaalSiramanDatums(datumUTC, sasi, tanggal) {
+            const maandLengtes = [36, 35, 36, 35, 36, 35, 36, 35, 36, 35];
+            if (!Number.isInteger(sasi) || sasi < 1 || sasi > maandLengtes.length) return null;
+
+            const maandIndex = sasi - 1;
+            if (!Number.isInteger(tanggal) || tanggal < 1 || tanggal > maandLengtes[maandIndex]) return null;
+
+            const dagenVoorSasi = maandLengtes
+                .slice(0, maandIndex)
+                .reduce((totaal, lengte) => totaal + lengte, 0);
+            const dagenNaJaarstart = dagenVoorSasi + tanggal - 1;
+            const jaarIndex = Math.floor(dagVerschilUTC(datumUTC, referentieDatumUTC) / javaansJaarLengte);
+            const maakDatum = index =>
+                referentieDatumUTC + (index * javaansJaarLengte + dagenNaJaarstart) * MS_PER_DAY;
+
+            const datumInDitJavaanseJaar = maakDatum(jaarIndex);
+            const laatste = datumInDitJavaanseJaar <= datumUTC
+                ? datumInDitJavaanseJaar
+                : maakDatum(jaarIndex - 1);
+            const volgende = datumInDitJavaanseJaar > datumUTC
+                ? datumInDitJavaanseJaar
+                : maakDatum(jaarIndex + 1);
+
+            return { laatste, volgende };
+        }
+
+        function formatteerSiramanDatum(datumUTC) {
+            return new Intl.DateTimeFormat("nl-NL", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                timeZone: "UTC"
+            }).format(new Date(datumUTC));
+        }
 
         function bepaalJavaanseMaandEnDag(datumUTC) {
             const dagenVerschil = dagVerschilUTC(datumUTC, referentieDatumUTC);
