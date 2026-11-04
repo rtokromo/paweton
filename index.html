@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Paweton — Javaanse Datum Calculator</title>
+    <title>Javaanse Datum Calculator — index5</title>
     <style>
 :root{color-scheme:light;--brown:#69431f;--brown-dark:#4a2e14;--line:#d9c6a9;--paper:#fffdf8;--bg:#f3efe6;--text:#352b21;--muted:#74695d;--red:#bd2929}
 *{box-sizing:border-box}
@@ -307,6 +307,11 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             })[teken]);
         }
 
+        function formatteerDinoNaam(naam) {
+            const tekst = String(naam || "");
+            return tekst ? tekst.charAt(0).toUpperCase() + tekst.slice(1) : tekst;
+        }
+
         function maakResultaatKaart(titel, rijen, breed = false) {
             const klasse = breed ? " result-card--wide" : "";
             const inhoud = rijen.map(([label, waarde]) =>
@@ -369,27 +374,27 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 const dagNaamUitkomst = dagNamenUitkomst[dagVanDeWeek] || dagVanDeWeek;
                 const pechDag = berekenPechDag(dagNaamUitkomst, pasaran);
                 const resultaatKaarten = [
-                    maakResultaatKaart("Javaanse datum", [
+                    maakResultaatKaart("Tanggal Djowo", [
                         ["Koto", javaansJaar],
                         ["Sasi", javaanseMaand],
                         ["Tanggal", dagVanDeMaand],
                         ["Pasaran", pasaran],
-                        ["Dino", dagNaamUitkomst]
+                        ["Dino", formatteerDinoNaam(dagNaamUitkomst)]
                     ], true),
-                    maakResultaatKaart("Dagwaarden", [
-                        ["Dagwaarde", dagWaarde],
-                        ["Pasaranwaarde", pasaranWaarde],
-                        ["Totale waarde", totaleWaarde],
-                        ["Ligging", ligging]
+                    maakResultaatKaart("Ongkoh", [
+                        ["Ongkoh Dino", dagWaarde],
+                        ["Ongkoh Pasaran", pasaranWaarde],
+                        ["Ongkoh", totaleWaarde],
+                        ["Madep", ligging]
                     ]),
                     maakWaardenKaart("Paweton", paweton.split("\n").slice(1)),
                     maakTijdenKaart(overdagTijden, avondTijden),
                     maakResultaatKaart("Kabedjan", [
-                        ["Dino", kabedjan.dino],
+                        ["Dino", formatteerDinoNaam(kabedjan.dino)],
                         ["Pasaran", kabedjan.pasaran],
-                        ["Dagwaarde", kabedjan.dagWaarde],
-                        ["Pasaranwaarde", kabedjan.pasaranWaarde],
-                        ["Totale waarde", kabedjan.totaleWaarde]
+                        ["Ongkoh Dino", kabedjan.dagWaarde],
+                        ["Ongkoh Pasaran", kabedjan.pasaranWaarde],
+                        ["Ongkoh", kabedjan.totaleWaarde]
                     ]),
                     maakWaardenKaart("Kabedjan Paweton", kabedjan.waarden.split("\n"))
                 ];
@@ -401,20 +406,28 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                     const apesPasaranWaarde = pasaranWaarden[pechDag.pasaran] || 0;
                     const apesTotaleWaarde = apesDagWaarde + apesPasaranWaarde;
                     resultaatKaarten.push(maakResultaatKaart("Apes", [
-                        ["Dino", pechDag.dag],
+                        ["Dino", formatteerDinoNaam(pechDag.dag)],
                         ["Pasaran", pechDag.pasaran],
-                        ["Dagwaarde", apesDagWaarde],
-                        ["Pasaranwaarde", apesPasaranWaarde],
-                        ["Totale waarde", apesTotaleWaarde]
+                        ["Ongkoh Dino", apesDagWaarde],
+                        ["Ongkoh Pasaran", apesPasaranWaarde],
+                        ["Ongkoh", apesTotaleWaarde]
                     ]));
 
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
-                        resultaatKaarten.push(maakResultaatKaart("Siraman", [
-                            ["Tanggal", tangal],
-                            ["Sasi", sasi]
-                        ]));
+                        const siramanDatums = bepaalSiramanDatums(huidigeDatumUTC(), sasi, tangal);
+                        const siramanRijen = [
+                            ["Sasi", sasi],
+                            ["Tanggal", tangal]
+                        ];
+                        if (siramanDatums) {
+                            siramanRijen.push(
+                                ["Afgelopen", formatteerSiramanDatum(siramanDatums.laatste)],
+                                ["Volgende", formatteerSiramanDatum(siramanDatums.volgende)]
+                            );
+                        }
+                        resultaatKaarten.push(maakResultaatKaart("Siraman", siramanRijen));
                     }
                 }
 
@@ -452,6 +465,47 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             if (this.value > 2200) this.value = 2200;
         });
 
+        function bepaalSiramanDatums(huidigeDatum, sasi, tanggal) {
+            const maandLengtes = [36, 35, 36, 35, 36, 35, 36, 35, 36, 35];
+            if (!Number.isInteger(sasi) || sasi < 1 || sasi > maandLengtes.length) return null;
+
+            const maandIndex = sasi - 1;
+            if (!Number.isInteger(tanggal) || tanggal < 1 || tanggal > maandLengtes[maandIndex]) return null;
+
+            const dagenVoorSasi = maandLengtes
+                .slice(0, maandIndex)
+                .reduce((totaal, lengte) => totaal + lengte, 0);
+            const dagenNaJaarstart = dagenVoorSasi + tanggal - 1;
+            // Gebruik het Javaanse jaar waarin de huidige datum valt als uitgangspunt.
+            const jaarIndex = Math.floor(dagVerschilUTC(huidigeDatum, referentieDatumUTC) / javaansJaarLengte);
+            const maakDatum = index =>
+                referentieDatumUTC + (index * javaansJaarLengte + dagenNaJaarstart) * MS_PER_DAY;
+
+            const datumInDitJavaanseJaar = maakDatum(jaarIndex);
+            const laatste = datumInDitJavaanseJaar <= huidigeDatum
+                ? datumInDitJavaanseJaar
+                : maakDatum(jaarIndex - 1);
+            const volgende = datumInDitJavaanseJaar > huidigeDatum
+                ? datumInDitJavaanseJaar
+                : maakDatum(jaarIndex + 1);
+
+            return { laatste, volgende };
+        }
+
+        function huidigeDatumUTC() {
+            const vandaag = new Date();
+            return Date.UTC(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate());
+        }
+
+        function formatteerSiramanDatum(datumUTC) {
+            return new Intl.DateTimeFormat("nl-NL", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                timeZone: "UTC"
+            }).format(new Date(datumUTC));
+        }
+
         function bepaalJavaanseMaandEnDag(datumUTC) {
             const dagenVerschil = dagVerschilUTC(datumUTC, referentieDatumUTC);
             let dagenInHuidigJaar = dagenVerschil % javaansJaarLengte;
@@ -480,7 +534,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
         }
 
         function bepaalLigging(totaleWaarde) {
-            return ["Noord", "Zuid", "Oost", "West"][(totaleWaarde - 1) % 4];
+            return ["Lor", "Kidul", "Wetan", "Kulon"][(totaleWaarde - 1) % 4];
         }
 
         function berekenMinuten(uren) {
