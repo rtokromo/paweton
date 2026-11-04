@@ -411,7 +411,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                     const tangal = berekenTangal(dagNaamUitkomst, pasaran, pechDag.dag, pechDag.pasaran);
                     const sasi = berekenSasi(pechDag.dag, pechDag.pasaran, dagNaamUitkomst, pasaran);
                     if (tangal !== null && sasi !== null) {
-                        const siramanDatums = bepaalSiramanDatums(datumUTC, sasi, tangal);
+                        const siramanDatums = bepaalSiramanDatums(huidigeDatumUTC(), sasi, tangal);
                         const siramanRijen = [
                             ["Sasi", sasi],
                             ["Tanggal", tangal]
@@ -422,7 +422,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                                 ["Volgende", formatteerSiramanDatum(siramanDatums.volgende)]
                             );
                         }
-                        resultaatKaarten.push(maakResultaatKaart("Siraman", siramanRijen));
+                        resultaatKaarten.push(maakResultaatKaart("Siraman — huidig jaar", siramanRijen));
                     }
                 }
 
@@ -460,7 +460,7 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
             if (this.value > 2200) this.value = 2200;
         });
 
-        function bepaalSiramanDatums(datumUTC, sasi, tanggal) {
+        function bepaalSiramanDatums(huidigeDatum, sasi, tanggal) {
             const maandLengtes = [36, 35, 36, 35, 36, 35, 36, 35, 36, 35];
             if (!Number.isInteger(sasi) || sasi < 1 || sasi > maandLengtes.length) return null;
 
@@ -471,20 +471,25 @@ button:focus-visible,input:focus-visible{outline:3px solid #d9a92e;outline-offse
                 .slice(0, maandIndex)
                 .reduce((totaal, lengte) => totaal + lengte, 0);
             const dagenNaJaarstart = dagenVoorSasi + tanggal - 1;
-            // Gebruik het Javaanse jaar waarin de ingevoerde datum valt als uitgangspunt.
-            const jaarIndex = Math.floor(dagVerschilUTC(datumUTC, referentieDatumUTC) / javaansJaarLengte);
+            // Gebruik het Javaanse jaar waarin de huidige datum valt als uitgangspunt.
+            const jaarIndex = Math.floor(dagVerschilUTC(huidigeDatum, referentieDatumUTC) / javaansJaarLengte);
             const maakDatum = index =>
                 referentieDatumUTC + (index * javaansJaarLengte + dagenNaJaarstart) * MS_PER_DAY;
 
             const datumInDitJavaanseJaar = maakDatum(jaarIndex);
-            const laatste = datumInDitJavaanseJaar <= datumUTC
+            const laatste = datumInDitJavaanseJaar <= huidigeDatum
                 ? datumInDitJavaanseJaar
                 : maakDatum(jaarIndex - 1);
-            const volgende = datumInDitJavaanseJaar > datumUTC
+            const volgende = datumInDitJavaanseJaar > huidigeDatum
                 ? datumInDitJavaanseJaar
                 : maakDatum(jaarIndex + 1);
 
             return { laatste, volgende };
+        }
+
+        function huidigeDatumUTC() {
+            const vandaag = new Date();
+            return Date.UTC(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate());
         }
 
         function formatteerSiramanDatum(datumUTC) {
